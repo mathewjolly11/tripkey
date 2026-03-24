@@ -87,9 +87,24 @@ function TouristBookingsPageContent() {
                       </a>
                     )}
                   </div>
-                  <span className="inline-flex px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-sm font-semibold capitalize w-fit">
-                    {booking.status}
-                  </span>
+                  <div className="flex flex-col gap-2 items-end">
+                    <span className="inline-flex px-3 py-1 rounded-full bg-sky-100 text-sky-700 text-sm font-semibold capitalize w-fit">
+                      {booking.status}
+                    </span>
+                    {booking.verification_status && (
+                      <span className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold capitalize w-fit ${
+                        booking.verification_status === 'approved'
+                          ? 'bg-green-100 text-green-700'
+                          : booking.verification_status === 'rejected'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        {booking.verification_status === 'approved' && '✓ Approved'}
+                        {booking.verification_status === 'rejected' && '✗ Rejected'}
+                        {booking.verification_status === 'pending' && '⏳ Pending'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

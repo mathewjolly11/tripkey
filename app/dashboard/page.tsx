@@ -157,12 +157,25 @@ function TouristDashboardHome() {
                 ) : (
                   <div className="space-y-3">
                     {recentBookings.map((booking) => (
-                      <div key={booking.id} className="p-3 rounded-lg border border-sky-100 bg-white flex items-center justify-between">
-                        <div>
+                      <div key={booking.id} className="p-3 rounded-lg border border-sky-100 bg-white">
+                        <div className="flex items-center justify-between mb-2">
                           <p className="font-medium text-gray-900">{booking.title}</p>
-                          <p className="text-xs text-gray-600 capitalize">{booking.type} • {new Date(booking.booking_date).toLocaleDateString()}</p>
+                          <span className="px-2 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold capitalize">{booking.status}</span>
                         </div>
-                        <span className="px-2 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold capitalize">{booking.status}</span>
+                        <p className="text-xs text-gray-600 capitalize mb-2">{booking.type} • {new Date(booking.booking_date).toLocaleDateString()}</p>
+                        {booking.verification_status && (
+                          <div className={`px-2 py-1 rounded text-xs font-semibold capitalize inline-block ${
+                            booking.verification_status === 'approved'
+                              ? 'bg-green-100 text-green-700'
+                              : booking.verification_status === 'rejected'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {booking.verification_status === 'approved' && '✓ Verified'}
+                            {booking.verification_status === 'rejected' && '✗ Rejected'}
+                            {booking.verification_status === 'pending' && '⏳ Pending Review'}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
