@@ -12,7 +12,7 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -33,10 +33,13 @@
     ]
   },
   "include": [
-    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next_local/types/**/*.ts",
+    ".next_runtime/types/**/*.ts",
+    "next-env.d.ts",
+    "next_build/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

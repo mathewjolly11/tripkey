@@ -60,7 +60,26 @@ tripkey/
 └── .gitignore
 ```
 
-## 🚀 Getting Started
+## � Documentation
+
+**👉 [START_HERE.md](START_HERE.md)** - Overview of all guides (read this first!)
+
+Then choose your path:
+
+| Document | Best For | Time |
+|----------|----------|------|
+| **[☑️ Setup Checklist](SETUP_CHECKLIST.md)** | Step-by-step with checkboxes | 30 min |
+| **[🔐 Step-by-Step Guide](GOOGLE_LOGIN_STEPBYSTEP.md)** | Detailed walkthrough | 20 min |
+| **[🎯 Quick Reference](SETUP_QUICK_REFERENCE.md)** | Copy-paste values | 5 min |
+| **[📍 Documentation Map](DOCUMENTATION_MAP.md)** | Finding what to read | 2 min |
+| **[📖 Overview](DOCUMENTATION_OVERVIEW.md)** | See all documentation | 5 min |
+| [Quick Start](QUICK_START.md) | Get it running | 5 min |
+| [Database Setup](SUPABASE_SETUP.md) | Supabase configuration | 15 min |
+| [Implementation Details](GOOGLE_OAUTH_IMPLEMENTATION.md) | Code changes | 5 min |
+
+---
+
+## �🚀 Getting Started
 
 ### Prerequisites
 - Node.js 18+ and npm/yarn installed

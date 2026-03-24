@@ -2,9 +2,19 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, user, signOut, loading } = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+    setIsOpen(false);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b border-sky-100">
@@ -50,12 +60,25 @@ export default function Navbar() {
 
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <button className="btn-outline px-5 py-2 text-sm">
-              Login
-            </button>
-            <button className="btn-primary px-5 py-2 text-sm">
-              Sign Up
-            </button>
+            {isAuthenticated && !loading ? (
+              <>
+                <Link href="/dashboard" className="text-gray-700 hover:text-sky-500 transition-colors font-medium">
+                  Dashboard
+                </Link>
+                <button onClick={handleSignOut} className="btn-outline px-5 py-2 text-sm">
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="btn-outline px-5 py-2 text-sm">
+                  Login
+                </Link>
+                <Link href="/signup" className="btn-primary px-5 py-2 text-sm">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -101,12 +124,25 @@ export default function Navbar() {
               How It Works
             </Link>
             <div className="flex gap-2 pt-2">
-              <button className="btn-outline flex-1 text-sm py-2">
-                Login
-              </button>
-              <button className="btn-primary flex-1 text-sm py-2">
-                Sign Up
-              </button>
+              {isAuthenticated && !loading ? (
+                <>
+                  <Link href="/dashboard" className="btn-outline flex-1 text-sm py-2">
+                    Dashboard
+                  </Link>
+                  <button onClick={handleSignOut} className="btn-primary flex-1 text-sm py-2">
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="btn-outline flex-1 text-sm py-2">
+                    Login
+                  </Link>
+                  <Link href="/signup" className="btn-primary flex-1 text-sm py-2">
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}
