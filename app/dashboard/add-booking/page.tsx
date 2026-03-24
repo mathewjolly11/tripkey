@@ -41,8 +41,8 @@ function AddBookingPageContent() {
       return;
     }
 
-    if (!title.trim() || !bookingDate || !bookingReference.trim()) {
-      await tripKeyAlert.error('Missing Fields', 'Please fill in all required fields: Booking Type, Title, Booking Date, and Booking Reference.');
+    if (!ticketFile) {
+      await tripKeyAlert.error('Missing Image', 'Please upload a booking confirmation image.');
       return;
     }
 
@@ -53,8 +53,8 @@ function AddBookingPageContent() {
       const result = await createBooking({
         userId: user.id,
         type,
-        title: title.trim(),
-        bookingDate,
+        title: title.trim() || 'Untitled Booking',
+        bookingDate: bookingDate || new Date().toISOString().split('T')[0],
         bookingReference: bookingReference.trim() || undefined,
         ticketFile,
       });
@@ -92,7 +92,7 @@ function AddBookingPageContent() {
       <main className="container-max py-10">
         <div className="max-w-xl card-base">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Create New Booking</h2>
-          <p className="text-gray-600 mb-2">Fill in the booking details below.</p>
+          <p className="text-gray-600 mb-2">Upload a booking confirmation image. Other details are optional.</p>
           <p className="text-sm text-gray-500 mb-6"><span className="text-red-500">*</span> Required fields</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +115,7 @@ function AddBookingPageContent() {
 
             <div>
               <label htmlFor="title" className="block text-sm font-semibold text-gray-900 mb-2">
-                Booking Title <span className="text-red-500">*</span>
+                Booking Title <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <input
                 id="title"
@@ -124,13 +124,12 @@ function AddBookingPageContent() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
-                required
               />
             </div>
 
             <div>
               <label htmlFor="bookingDate" className="block text-sm font-semibold text-gray-900 mb-2">
-                Booking Date <span className="text-red-500">*</span>
+                Booking Date <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <input
                 id="bookingDate"
@@ -138,13 +137,12 @@ function AddBookingPageContent() {
                 value={bookingDate}
                 onChange={(e) => setBookingDate(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
-                required
               />
             </div>
 
             <div>
               <label htmlFor="bookingReference" className="block text-sm font-semibold text-gray-900 mb-2">
-                Booking Reference/Confirmation Number <span className="text-red-500">*</span>
+                Booking Reference/Confirmation Number <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <input
                 id="bookingReference"
@@ -153,14 +151,13 @@ function AddBookingPageContent() {
                 value={bookingReference}
                 onChange={(e) => setBookingReference(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
-                required
               />
               <p className="text-xs text-gray-500 mt-1">Enter the booking confirmation number from the hotel/service</p>
             </div>
 
             <div>
               <label htmlFor="ticket" className="block text-sm font-semibold text-gray-900 mb-2">
-                Ticket Upload <span className="text-gray-400 font-normal">(Optional)</span>
+                Booking Image <span className="text-red-500">*</span>
               </label>
               <input
                 id="ticket"
@@ -168,8 +165,9 @@ function AddBookingPageContent() {
                 accept=".pdf,.png,.jpg,.jpeg"
                 onChange={(e) => setTicketFile(e.target.files?.[0] || null)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
+                required
               />
-              <p className="text-xs text-gray-500 mt-1">Supported formats: PDF, PNG, JPG</p>
+              <p className="text-xs text-gray-500 mt-1">Upload confirmation screenshot/image from the service provider (PDF, PNG, JPG)</p>
             </div>
 
             {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}

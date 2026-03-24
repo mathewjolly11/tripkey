@@ -6,7 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { extractTouristTokenFromQrUrl, tryParseTripKeyPayload, addScanRecord } from '@/lib/provider-scan-history';
+import { updateBookingVerification } from '@/lib/bookings';
 import { Booking, supabase } from '@/lib/supabase';
+import { tripKeyAlert } from '@/lib/alerts';
 
 interface TouristProfile {
   id: string;
@@ -23,6 +25,7 @@ function ProviderVerifyPageContent() {
   const [touristToken, setTouristToken] = useState<string | null>(null);
   const [touristProfile, setTouristProfile] = useState<TouristProfile | null>(null);
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   const parsed = tryParseTripKeyPayload(payload);
   const tokenFromUrl = extractTouristTokenFromQrUrl(payload);
@@ -110,7 +113,46 @@ function ProviderVerifyPageContent() {
     runVerification();
   }, [parsed.touristId, tokenFromUrl, user?.provider_type, user?.id, payload]);
 
+  const handleApprove = async () => {
+    if (!booking || !user?.id) return;
+
+    setVerifying(true);
+    tripKeyAlert.loading('Approving booking...');
+
+    try {
+      await updateBookingVerification(booking.id, 'approved', user.id);
+      tripKeyAlert.close();
+      await tripKeyAlert.success('Booking Approved', `Booking "${booking.title}" has been verified and approved.`);
+      setBooking({ ...booking, verification_status: 'approved' });
+    } catch (err) {
+      tripKeyAlert.close();
+      await tripKeyAlert.error('Error', (err as Error).message);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!booking || !user?.id) return;
+
+    setVerifying(true);
+    tripKeyAlert.loading('Rejecting booking...');
+
+    try {
+      await updateBookingVerification(booking.id, 'rejected', user.id);
+      tripKeyAlert.close();
+      await tripKeyAlert.success('Booking Rejected', `Booking "${booking.title}" has been rejected.`);
+      setBooking({ ...booking, verification_status: 'rejected' });
+    } catch (err) {
+      tripKeyAlert.close();
+      await tripKeyAlert.error('Error', (err as Error).message);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const hasValidBooking = Boolean(booking);
+  const isAlreadyVerified = booking?.verification_status && booking.verification_status !== 'pending';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-white">
@@ -144,26 +186,73 @@ function ProviderVerifyPageContent() {
               </div>
 
               {hasValidBooking && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                  <div className="rounded-lg border border-sky-100 p-4 bg-white">
-                    <p className="text-xs text-gray-500 mb-1">Tourist Name</p>
-                    <p className="font-semibold text-gray-900">{touristProfile?.name || 'Unknown Tourist'}</p>
+                <>
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Confirmation Image</h3>
+                    {booking?.ticket_url ? (
+                      <div className="rounded-lg border border-sky-200 bg-sky-50 p-4">
+                        {booking.ticket_url.toLowerCase().endsWith('.pdf') ? (
+                          <a
+                            href={booking.ticket_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition font-semibold"
+                          >
+                            📄 View PDF
+                          </a>
+                        ) : (
+                          <img
+                            src={booking.ticket_url}
+                            alt="Booking confirmation"
+                            className="max-h-96 rounded-lg border border-sky-300"
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-gray-600">
+                        No image provided
+                      </div>
+                    )}
                   </div>
-                  <div className="rounded-lg border border-sky-100 p-4 bg-white">
-                    <p className="text-xs text-gray-500 mb-1">Booking Title</p>
-                    <p className="font-semibold text-gray-900">{booking?.title}</p>
-                  </div>
-                  <div className="rounded-lg border border-sky-100 p-4 bg-white">
-                    <p className="text-xs text-gray-500 mb-1">Booking Date</p>
-                    <p className="font-semibold text-gray-900">
-                      {booking?.booking_date ? new Date(booking.booking_date).toLocaleDateString() : 'N/A'}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-sky-100 p-4 bg-white">
-                    <p className="text-xs text-gray-500 mb-1">Status</p>
-                    <p className="font-semibold text-green-700">VALID BOOKING</p>
-                  </div>
-                </div>
+
+                  {!isAlreadyVerified && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8">
+                      <p className="text-amber-800 font-semibold mb-4">Verify the booking image and take action:</p>
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          onClick={handleApprove}
+                          disabled={verifying}
+                          className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition disabled:opacity-50"
+                        >
+                          ✓ Approve
+                        </button>
+                        <button
+                          onClick={handleReject}
+                          disabled={verifying}
+                          className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition disabled:opacity-50"
+                        >
+                          ✗ Reject
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {isAlreadyVerified && (
+                    <div
+                      className={`rounded-lg p-4 mb-8 ${
+                        booking.verification_status === 'approved'
+                          ? 'bg-green-50 border border-green-200 text-green-700'
+                          : 'bg-red-50 border border-red-200 text-red-700'
+                      }`}
+                    >
+                      <p className="font-semibold">
+                        {booking.verification_status === 'approved'
+                          ? '✓ Already Approved'
+                          : '✗ Already Rejected'}
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}

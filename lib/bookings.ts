@@ -77,3 +77,26 @@ export async function createBooking(input: CreateBookingInput): Promise<{ bookin
     throw new Error(`Failed to create booking: ${(err as Error).message}`);
   }
 }
+
+export async function updateBookingVerification(
+  bookingId: string,
+  status: 'approved' | 'rejected',
+  providerId: string
+): Promise<Booking | null> {
+  const { data, error } = await supabase
+    .from('bookings')
+    .update({
+      verification_status: status,
+      verified_by: providerId,
+      verified_at: new Date().toISOString(),
+    })
+    .eq('id', bookingId)
+    .select('*')
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update booking verification: ${error.message}`);
+  }
+
+  return data;
+}

@@ -31,6 +31,9 @@ export interface Booking {
   booking_reference?: string | null;
   ticket_url?: string | null;
   status: string;
+  verification_status?: 'pending' | 'approved' | 'rejected';
+  verified_by?: string | null;
+  verified_at?: string | null;
   created_at: string;
 }
 
