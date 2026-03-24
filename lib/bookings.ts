@@ -33,39 +33,47 @@ export async function createBooking(input: CreateBookingInput): Promise<{ bookin
     const extension = input.ticketFile.name.split('.').pop() || 'bin';
     const fileName = `${input.userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from(TICKETS_BUCKET)
-      .upload(fileName, input.ticketFile, {
-        cacheControl: '3600',
-        upsert: false,
-      });
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from(TICKETS_BUCKET)
+        .upload(fileName, input.ticketFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
-    if (!uploadError) {
-      const { data: publicData } = supabase.storage.from(TICKETS_BUCKET).getPublicUrl(fileName);
-      ticketUrl = publicData.publicUrl;
-    } else {
-      warning = `Ticket upload skipped: ${uploadError.message}`;
+      if (!uploadError) {
+        const { data: publicData } = supabase.storage.from(TICKETS_BUCKET).getPublicUrl(fileName);
+        ticketUrl = publicData.publicUrl;
+      } else {
+        warning = `Ticket upload skipped: ${uploadError.message}`;
+      }
+    } catch (err) {
+      warning = `Ticket upload failed: ${(err as Error).message}`;
     }
   }
 
-  const { data, error } = await supabase
-    .from('bookings')
-    .insert({
-      user_id: input.userId,
-      type: input.type,
-      title: input.title,
-      booking_date: input.bookingDate,
-      booking_reference: input.bookingReference || null,
-      ticket_url: ticketUrl,
-      status: 'upcoming',
-      created_at: new Date().toISOString(),
-    })
-    .select('*')
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert({
+        user_id: input.userId,
+        type: input.type,
+        title: input.title,
+        booking_date: input.bookingDate,
+        booking_reference: input.bookingReference || null,
+        ticket_url: ticketUrl,
+        status: 'upcoming',
+        created_at: new Date().toISOString(),
+      })
+      .select('*')
+      .single();
 
-  if (error) {
-    throw new Error(error.message);
+    if (error) {
+      throw new Error(`Database error: ${error.message}`);
+    }
+
+    return { booking: data, warning };
+  } catch (err) {
+    throw new Error(`Failed to create booking: ${(err as Error).message}`);
   }
-
-  return { booking: data, warning };
 }
