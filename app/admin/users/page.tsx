@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getAllUsers } from '@/lib/admin/data';
 import type { User } from '@/lib/supabase';
+import { tripKeyAlert } from '@/lib/alerts';
 
 const PAGE_SIZE = 10;
 
@@ -87,6 +88,8 @@ export default function AdminUsersPage() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    void tripKeyAlert.success('Export Complete', 'Users data downloaded as CSV.');
   };
 
   return (

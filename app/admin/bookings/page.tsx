@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getBookingsMonitor } from '@/lib/admin/data';
 import type { Booking } from '@/lib/supabase';
+import { tripKeyAlert } from '@/lib/alerts';
 
 const PAGE_SIZE = 10;
 
@@ -86,6 +87,8 @@ export default function AdminBookingsPage() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    void tripKeyAlert.success('Export Complete', 'Bookings data downloaded as CSV.');
   };
 
   return (

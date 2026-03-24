@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import Logo from '@/components/Logo';
 import { tripKeyAlert } from '@/lib/alerts';
 
 export default function Navbar() {
@@ -26,9 +26,19 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b border-sky-100">
       <div className="container-max">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Logo size="sm" />
+          <Link href="/" className="inline-flex items-center">
+            <div className="relative h-12 w-36">
+              <Image
+                src="/tripkeylogobg.png"
+                alt="TripKey"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">

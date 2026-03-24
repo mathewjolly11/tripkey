@@ -3,8 +3,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { approveProvider, getProviderQueue } from '@/lib/admin/data';
 import type { ProviderType, User } from '@/lib/supabase';
+import { tripKeyAlert } from '@/lib/alerts';
 
 const PAGE_SIZE = 10;
+const ACTION_TIMEOUT_MS = 2500;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | null> {
+  return Promise.race([
+    promise,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs)),
+  ]);
+}
 
 export default function AdminProvidersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -83,18 +92,39 @@ export default function AdminProvidersPage() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    void tripKeyAlert.success('Export Complete', 'Provider onboarding data downloaded as CSV.');
   };
 
   const handleApprove = async (userId: string, providerType: ProviderType) => {
-    setBusyUserId(userId);
-    const result = await approveProvider(userId, providerType);
-    setBusyUserId(null);
+    const selectedUser = users.find((user) => user.id === userId);
+    const confirmResult = await tripKeyAlert.confirm(
+      'Approve Provider',
+      `Approve ${selectedUser?.name || selectedUser?.email || 'this user'} as ${providerType}?`,
+    );
 
-    if (result.error) {
-      setError(result.error);
+    if (!confirmResult.isConfirmed) {
       return;
     }
 
+    setBusyUserId(userId);
+    tripKeyAlert.loading('Updating provider role...');
+    const result = await withTimeout(approveProvider(userId, providerType), ACTION_TIMEOUT_MS);
+    tripKeyAlert.close();
+    setBusyUserId(null);
+
+    if (!result) {
+      await tripKeyAlert.error('Request Timeout', 'Provider update is taking too long. Please try again.');
+      return;
+    }
+
+    if (result.error) {
+      setError(result.error);
+      await tripKeyAlert.error('Approval Failed', result.error);
+      return;
+    }
+
+    await tripKeyAlert.success('Provider Approved', `User approved as ${providerType} provider.`);
     await loadProviders();
   };
 

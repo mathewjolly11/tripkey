@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { getAdminStats, getScanActivity, type AdminStats } from '@/lib/admin/data';
+import { tripKeyAlert } from '@/lib/alerts';
 
 const PAGE_SIZE = 10;
 
@@ -127,6 +128,8 @@ export default function AdminAnalyticsPage() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    void tripKeyAlert.success('Export Complete', 'Scan analytics data downloaded as CSV.');
   };
 
   return (

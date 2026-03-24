@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { tripKeyAlert } from '@/lib/alerts';
 
 const adminNavItems = [
   { href: '/admin', label: 'Overview' },
@@ -26,12 +28,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [pathname]);
 
   const handleSignOut = async () => {
-    const confirmed = window.confirm('Sign out from admin panel?');
-    if (!confirmed) return;
+    const result = await tripKeyAlert.signOutConfirm();
+    if (!result.isConfirmed) return;
 
-    await signOut();
-    router.replace('/');
-    router.refresh();
+    tripKeyAlert.loading('Signing out...');
+    try {
+      await Promise.race([
+        signOut(),
+        new Promise((resolve) => setTimeout(resolve, 1200)),
+      ]);
+
+      router.replace('/');
+    } catch (error) {
+      await tripKeyAlert.error('Sign Out Failed', (error as Error).message || 'Could not sign out.');
+    } finally {
+      tripKeyAlert.close();
+    }
   };
 
   return (
@@ -53,9 +65,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             }`}
           >
             <div className="mb-6 border-b border-slate-200 pb-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-600">TripKey Admin</p>
-              <p className="mt-2 text-base font-semibold text-slate-900">{user?.name || 'Administrator'}</p>
-              <p className="text-sm text-slate-500">{user?.email}</p>
+              <Link href="/admin" className="inline-flex items-center">
+                <div className="relative h-20 w-20">
+                  <Image
+                    src="/tripkeylogobg.png"
+                    alt="TripKey"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+              </Link>
             </div>
 
             <nav className="space-y-1.5">
