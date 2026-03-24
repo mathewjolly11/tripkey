@@ -37,23 +37,19 @@ function ProviderVerifyPageContent() {
 
       try {
         const token = tokenFromUrl || parsed.touristId || null;
-        console.log('[Verify] Tourist token extracted:', token);
         setTouristToken(token);
 
         if (!token) {
-          console.log('[Verify] No token found');
           setLoading(false);
           return;
         }
 
         if (!user?.provider_type) {
-          console.log('[Verify] Provider type missing');
           setError('Provider type is missing on this account.');
           setLoading(false);
           return;
         }
 
-        console.log('[Verify] Starting parallel queries for tourist:', token);
         const [{ data: tourist }, { data: bookings, error: bookingError }] = await Promise.all([
           supabase
             .from('profiles')
@@ -69,14 +65,11 @@ function ProviderVerifyPageContent() {
             .limit(1),
         ]);
 
-        console.log('[Verify] Query completed. Tourist:', tourist, 'Bookings:', bookings, 'Error:', bookingError);
-
         if (bookingError) {
           throw new Error(bookingError.message);
         }
 
         const matchedBooking = bookings && bookings.length > 0 ? bookings[0] : null;
-        console.log('[Verify] Matched booking:', matchedBooking);
 
         setTouristProfile(tourist || null);
         setBooking(matchedBooking || null);
@@ -84,7 +77,6 @@ function ProviderVerifyPageContent() {
         // Record the scan in the database
         if (user?.id) {
           const scanStatus = matchedBooking ? 'valid' : 'no_booking';
-          console.log('[Verify] Recording scan with status:', scanStatus);
           await addScanRecord({
             provider_id: user.id,
             tourist_id: token || null,
@@ -96,10 +88,8 @@ function ProviderVerifyPageContent() {
             booking_title: matchedBooking?.title || null,
             raw_payload: payload || null,
           });
-          console.log('[Verify] Scan record created');
         }
       } catch (err) {
-        console.error('[Verify] Error:', err);
         setError((err as Error).message);
 
         // Record failed scan
@@ -117,7 +107,6 @@ function ProviderVerifyPageContent() {
           });
         }
       } finally {
-        console.log('[Verify] Loading complete');
         setLoading(false);
       }
     };

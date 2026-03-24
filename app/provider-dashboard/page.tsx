@@ -21,18 +21,27 @@ function ProviderDashboardContent() {
     const fetchStats = async () => {
       if (!user?.id) return;
 
-      const history = await getScanHistory(user.id);
-      const today = new Date().toDateString();
-      const todayScans = history.filter((item) => new Date(item.scan_time).toDateString() === today).length;
-      const lastScanAt = history.length > 0
-        ? new Date(history[0].scan_time).toLocaleString()
-        : 'No scans yet';
+      try {
+        const history = await getScanHistory(user.id);
+        const today = new Date().toDateString();
+        const todayScans = history.filter((item) => new Date(item.scan_time).toDateString() === today).length;
+        const lastScanAt = history.length > 0
+          ? new Date(history[0].scan_time).toLocaleString()
+          : 'No scans yet';
 
-      setStats({
-        totalScans: history.length,
-        todayScans,
-        lastScanAt,
-      });
+        setStats({
+          totalScans: history.length,
+          todayScans,
+          lastScanAt,
+        });
+      } catch (err) {
+        console.error('Failed to fetch scan stats:', err);
+        setStats({
+          totalScans: 0,
+          todayScans: 0,
+          lastScanAt: 'Unable to load',
+        });
+      }
     };
 
     fetchStats();

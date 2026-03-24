@@ -24,15 +24,21 @@ function TouristDashboardHome() {
     const loadBookings = async () => {
       if (!user?.id) return;
 
-      const { data } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('booking_date', { ascending: true })
-        .limit(3);
+      try {
+        const { data } = await supabase
+          .from('bookings')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('booking_date', { ascending: true })
+          .limit(3);
 
-      setRecentBookings(data || []);
-      setFetchingBookings(false);
+        setRecentBookings(data || []);
+      } catch (err) {
+        console.error('Failed to load bookings:', err);
+        setRecentBookings([]);
+      } finally {
+        setFetchingBookings(false);
+      }
     };
 
     loadBookings();

@@ -18,9 +18,15 @@ function ProviderHistoryPageContent() {
     const fetchHistory = async () => {
       if (!user?.id) return;
       setLoading(true);
-      const history = await getScanHistory(user.id);
-      setRecords(history);
-      setLoading(false);
+      try {
+        const history = await getScanHistory(user.id);
+        setRecords(history);
+      } catch (err) {
+        console.error('Failed to fetch scan history:', err);
+        setRecords([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchHistory();
