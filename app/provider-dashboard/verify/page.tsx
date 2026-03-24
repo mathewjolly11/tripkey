@@ -50,7 +50,7 @@ function ProviderVerifyPageContent() {
           return;
         }
 
-        const [{ data: tourist }, { data: matchedBooking, error: bookingError }] = await Promise.all([
+        const [{ data: tourist }, { data: bookings, error: bookingError }] = await Promise.all([
           supabase
             .from('profiles')
             .select('id, name, email')
@@ -60,15 +60,16 @@ function ProviderVerifyPageContent() {
             .from('bookings')
             .select('*')
             .eq('user_id', token)
-            .eq('type', user.provider_type)
+            .not('ticket_url', 'is', null)
             .order('booking_date', { ascending: false })
-            .limit(1)
-            .maybeSingle(),
+            .limit(1),
         ]);
 
         if (bookingError) {
           throw new Error(bookingError.message);
         }
+
+        const matchedBooking = bookings && bookings.length > 0 ? bookings[0] : null;
 
         setTouristProfile(tourist || null);
         setBooking(matchedBooking || null);
