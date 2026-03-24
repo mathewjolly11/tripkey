@@ -41,39 +41,54 @@ export async function createBooking(input: CreateBookingInput): Promise<{ bookin
           upsert: false,
         });
 
-      if (!uploadError) {
-        const { data: publicData } = supabase.storage.from(TICKETS_BUCKET).getPublicUrl(fileName);
-        ticketUrl = publicData.publicUrl;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        warning = `Ticket upload failed: ${uploadError.message}`;
       } else {
-        warning = `Ticket upload skipped: ${uploadError.message}`;
+        // Upload succeeded, get public URL
+        const { data: publicData } = supabase.storage.from(TICKETS_BUCKET).getPublicUrl(fileName);
+        if (publicData && publicData.publicUrl) {
+          ticketUrl = publicData.publicUrl;
+          console.log('Image uploaded successfully:', ticketUrl);
+        } else {
+          warning = 'Could not generate public URL for image';
+        }
       }
     } catch (err) {
+      console.error('Ticket upload exception:', err);
       warning = `Ticket upload failed: ${(err as Error).message}`;
     }
   }
 
   try {
+    const bookingData = {
+      user_id: input.userId,
+      type: input.type,
+      title: input.title,
+      booking_date: input.bookingDate,
+      booking_reference: input.bookingReference || null,
+      ticket_url: ticketUrl,
+      status: 'upcoming',
+      created_at: new Date().toISOString(),
+    };
+
+    console.log('Creating booking with data:', bookingData);
+
     const { data, error } = await supabase
       .from('bookings')
-      .insert({
-        user_id: input.userId,
-        type: input.type,
-        title: input.title,
-        booking_date: input.bookingDate,
-        booking_reference: input.bookingReference || null,
-        ticket_url: ticketUrl,
-        status: 'upcoming',
-        created_at: new Date().toISOString(),
-      })
+      .insert(bookingData)
       .select('*')
       .single();
 
     if (error) {
+      console.error('Booking insert error:', error);
       throw new Error(`Database error: ${error.message}`);
     }
 
+    console.log('Booking created:', data);
     return { booking: data, warning };
   } catch (err) {
+    console.error('Booking creation exception:', err);
     throw new Error(`Failed to create booking: ${(err as Error).message}`);
   }
 }
