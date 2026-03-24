@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import Logo from '@/components/Logo';
+import { tripKeyAlert } from '@/lib/alerts';
 
 function roleRedirect(role?: string) {
   if (role === 'provider') return '/provider-dashboard';
@@ -26,17 +27,22 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
+    tripKeyAlert.loading('Signing in...');
+
     const { error } = await signIn(email, password);
 
     if (error) {
+      tripKeyAlert.close();
       setError(error);
       setLoading(false);
+      await tripKeyAlert.error('Sign In Failed', error);
     } else {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) {
+        tripKeyAlert.close();
         router.push('/dashboard');
         return;
       }
@@ -47,6 +53,8 @@ export default function LoginPage() {
         .eq('id', user.id)
         .maybeSingle();
 
+      tripKeyAlert.close();
+      await tripKeyAlert.success('Welcome!', `Signed in successfully as ${user.email}`);
       router.push(roleRedirect(profile?.role));
     }
   };

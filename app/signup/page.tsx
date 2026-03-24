@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import Logo from '@/components/Logo';
+import { tripKeyAlert } from '@/lib/alerts';
 
 function roleRedirect(role: string) {
   if (role === 'provider') return '/provider-dashboard';
@@ -53,6 +54,8 @@ export default function SignupPage() {
     setError('');
     setLoading(true);
 
+    tripKeyAlert.loading('Creating your account...');
+
     const { error } = await signUp(
       email,
       password,
@@ -62,9 +65,14 @@ export default function SignupPage() {
     );
 
     if (error) {
+      tripKeyAlert.close();
       setError(error);
       setLoading(false);
+      await tripKeyAlert.error('Sign Up Failed', error);
     } else {
+      tripKeyAlert.close();
+      const roleText = role === 'tourist' ? 'Traveler' : role === 'provider' ? 'Service Provider' : 'Administrator';
+      await tripKeyAlert.success('Account Created!', `Welcome to TripKey, ${name}! You're now registered as a ${roleText}.`);
       router.push(roleRedirect(role));
     }
   };

@@ -34,15 +34,17 @@ function ProviderScanPageContent() {
             if (hasScannedRef.current || !user?.id) return;
             hasScannedRef.current = true;
 
-            // Stop scanner before redirecting
-            try {
-              await scanner.stop();
-            } catch {
-              // no-op
-            }
-
-            // Redirect to verify page (scan recording happens there)
+            // Redirect to verify page immediately (don't wait to stop scanner)
             router.push(`/provider-dashboard/verify?payload=${encodeURIComponent(decodedText)}`);
+
+            // Stop scanner in background without blocking
+            setTimeout(() => {
+              if (scannerRef.current) {
+                scannerRef.current.stop().catch(() => {
+                  // Silently ignore stop errors
+                });
+              }
+            }, 100);
           },
           () => {
             // Ignore per-frame decode failures.

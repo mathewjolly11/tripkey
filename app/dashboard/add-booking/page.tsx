@@ -37,16 +37,17 @@ function AddBookingPageContent() {
     setWarning(null);
 
     if (!user?.id) {
-      setError('You must be logged in.');
+      await tripKeyAlert.error('Error', 'You must be logged in.');
       return;
     }
 
     if (!title.trim() || !bookingDate || !bookingReference.trim()) {
-      setError('Please fill in all required fields: Booking Type, Title, Booking Date, and Booking Reference.');
+      await tripKeyAlert.error('Missing Fields', 'Please fill in all required fields: Booking Type, Title, Booking Date, and Booking Reference.');
       return;
     }
 
     setSubmitting(true);
+    tripKeyAlert.loading('Creating your booking...');
 
     try {
       const result = await createBooking({
@@ -58,13 +59,19 @@ function AddBookingPageContent() {
         ticketFile,
       });
 
+      tripKeyAlert.close();
+
       if (result.warning) {
-        setWarning(result.warning);
+        await tripKeyAlert.warning('Warning', result.warning);
       }
 
+      await tripKeyAlert.success('Booking Created!', `Your ${type} booking "${title}" has been successfully created.`);
       router.push('/dashboard/bookings');
     } catch (err) {
-      setError((err as Error).message);
+      tripKeyAlert.close();
+      const errorMessage = (err as Error).message;
+      setError(errorMessage);
+      await tripKeyAlert.error('Error Creating Booking', errorMessage);
     } finally {
       setSubmitting(false);
     }
