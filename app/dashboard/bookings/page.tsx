@@ -73,6 +73,9 @@ function TouristBookingsPageContent() {
                     <p className="text-lg font-semibold text-gray-900">{booking.title}</p>
                     <p className="text-sm text-gray-600 capitalize">Type: {booking.type}</p>
                     <p className="text-sm text-gray-600">Date: {new Date(booking.booking_date).toLocaleDateString()}</p>
+                    {booking.booking_reference && (
+                      <p className="text-sm text-gray-700 font-medium">Confirmation: <span className="font-bold text-sky-600">{booking.booking_reference}</span></p>
+                    )}
                     {booking.ticket_url && (
                       <a href={booking.ticket_url} target="_blank" rel="noreferrer" className="text-sky-600 text-sm font-medium hover:underline">
                         View Ticket

@@ -5,6 +5,7 @@ export interface CreateBookingInput {
   type: ProviderType;
   title: string;
   bookingDate: string;
+  bookingReference?: string;
   ticketFile?: File | null;
 }
 
@@ -54,6 +55,7 @@ export async function createBooking(input: CreateBookingInput): Promise<{ bookin
       type: input.type,
       title: input.title,
       booking_date: input.bookingDate,
+      booking_reference: input.bookingReference || null,
       ticket_url: ticketUrl,
       status: 'upcoming',
       created_at: new Date().toISOString(),

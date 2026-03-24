@@ -28,6 +28,7 @@ export interface Booking {
   type: ProviderType;
   title: string;
   booking_date: string;
+  booking_reference?: string | null;
   ticket_url?: string | null;
   status: string;
   created_at: string;

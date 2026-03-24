@@ -15,6 +15,7 @@ function AddBookingPageContent() {
   const [type, setType] = useState<ProviderType>('hotel');
   const [title, setTitle] = useState('');
   const [bookingDate, setBookingDate] = useState('');
+  const [bookingReference, setBookingReference] = useState('');
   const [ticketFile, setTicketFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,8 +36,8 @@ function AddBookingPageContent() {
       return;
     }
 
-    if (!title.trim() || !bookingDate) {
-      setError('Please fill in all required fields: Booking Type, Title, and Booking Date.');
+    if (!title.trim() || !bookingDate || !bookingReference.trim()) {
+      setError('Please fill in all required fields: Booking Type, Title, Booking Date, and Booking Reference.');
       return;
     }
 
@@ -48,6 +49,7 @@ function AddBookingPageContent() {
         type,
         title: title.trim(),
         bookingDate,
+        bookingReference: bookingReference.trim() || undefined,
         ticketFile,
       });
 
@@ -126,6 +128,22 @@ function AddBookingPageContent() {
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
                 required
               />
+            </div>
+
+            <div>
+              <label htmlFor="bookingReference" className="block text-sm font-semibold text-gray-900 mb-2">
+                Booking Reference/Confirmation Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="bookingReference"
+                type="text"
+                placeholder="e.g., BKG-12345, #ABC123"
+                value={bookingReference}
+                onChange={(e) => setBookingReference(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">Enter the booking confirmation number from the hotel/service</p>
             </div>
 
             <div>
