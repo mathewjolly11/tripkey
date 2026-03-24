@@ -43,6 +43,7 @@ export default function LoginPage() {
 
       if (!user) {
         tripKeyAlert.close();
+        setLoading(false);
         router.push('/dashboard');
         return;
       }
@@ -55,6 +56,7 @@ export default function LoginPage() {
 
       tripKeyAlert.close();
       await tripKeyAlert.success('Welcome!', `Signed in successfully as ${user.email}`);
+      setLoading(false);
       router.push(roleRedirect(profile?.role));
     }
   };
@@ -138,7 +140,9 @@ export default function LoginPage() {
             if (error) {
               setError(error);
               setLoading(false);
+              await tripKeyAlert.error('Sign In Failed', error);
             }
+            // Loading stays true while redirecting to Google
           }}
           disabled={loading}
           className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-sky-300 hover:bg-sky-50 transition-all flex items-center justify-center gap-2 font-semibold text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
