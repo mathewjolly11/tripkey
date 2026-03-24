@@ -19,7 +19,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { signIn, signInWithGoogle, isAuthenticated, user, loading: authLoading } = useAuth();
+  const [sendingReset, setSendingReset] = useState(false);
+  const { signIn, signInWithGoogle, requestPasswordReset, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -70,6 +71,31 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      await tripKeyAlert.info('Enter Your Email', 'Please enter your email first, then click Forgot Password again.');
+      return;
+    }
+
+    setSendingReset(true);
+    tripKeyAlert.loading('Sending reset email...');
+
+    const { error } = await requestPasswordReset(email);
+
+    tripKeyAlert.close();
+    setSendingReset(false);
+
+    if (error) {
+      await tripKeyAlert.error('Reset Failed', error);
+      return;
+    }
+
+    await tripKeyAlert.success(
+      'Reset Email Sent',
+      'Check your inbox for the reset link. SMTP must be configured in Supabase Auth.',
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-sky-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
@@ -114,6 +140,16 @@ export default function LoginPage() {
               required
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none transition-colors"
             />
+            <div className="mt-2 text-right">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={sendingReset || submitting || authLoading}
+                className="text-sm font-medium text-sky-600 hover:text-sky-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {sendingReset ? 'Sending...' : 'Forgot password?'}
+              </button>
+            </div>
           </div>
 
           {/* Error Message */}

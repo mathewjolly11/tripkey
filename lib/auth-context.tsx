@@ -55,6 +55,8 @@ interface AuthContextType {
     mode?: 'login' | 'signup';
   }) => Promise<{ error: null | string }>;
   signOut: () => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<{ error: null | string }>;
+  deleteAccount: () => Promise<{ error: null | string }>;
   isAuthenticated: boolean;
 }
 
@@ -336,6 +338,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const requestPasswordReset = async (email: string): Promise<{ error: null | string }> => {
+    try {
+      const response = await fetch('/api/account/password-reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        return { error: payload?.error || 'Unable to send reset email.' };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: (error as Error).message };
+    }
+  };
+
+  const deleteAccount = async (): Promise<{ error: null | string }> => {
+    try {
+      const {
+        data: { session: currentSession },
+      } = await supabase.auth.getSession();
+
+      const accessToken = currentSession?.access_token;
+      if (!accessToken) {
+        return { error: 'No active session found.' };
+      }
+
+      const response = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        return { error: payload?.error || 'Failed to delete account.' };
+      }
+
+      await supabase.auth.signOut();
+      setSession(null);
+      setUser(null);
+      clearOAuthSignupContext();
+
+      return { error: null };
+    } catch (error) {
+      return { error: (error as Error).message };
+    }
+  };
+
   const signInWithGoogle = async (options?: {
     role?: UserRole;
     providerType?: ProviderType;
@@ -395,6 +452,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signInWithGoogle,
     signOut,
+    requestPasswordReset,
+    deleteAccount,
     isAuthenticated: !!session,
   };
 

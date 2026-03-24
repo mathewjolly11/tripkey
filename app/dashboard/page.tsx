@@ -9,10 +9,11 @@ import { Booking, supabase } from '@/lib/supabase';
 import { tripKeyAlert } from '@/lib/alerts';
 
 function TouristDashboardHome() {
-  const { user, loading, isAuthenticated, signOut } = useAuth();
+  const { user, loading, isAuthenticated, signOut, requestPasswordReset, deleteAccount } = useAuth();
   const router = useRouter();
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [fetchingBookings, setFetchingBookings] = useState(true);
+  const [accountActionLoading, setAccountActionLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -66,6 +67,54 @@ function TouristDashboardHome() {
       router.push('/');
       await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
     }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!user?.email) return;
+
+    setAccountActionLoading(true);
+    tripKeyAlert.loading('Sending reset email...');
+
+    const { error } = await requestPasswordReset(user.email);
+
+    tripKeyAlert.close();
+    setAccountActionLoading(false);
+
+    if (error) {
+      await tripKeyAlert.error('Could not send reset email', error);
+      return;
+    }
+
+    await tripKeyAlert.success(
+      'Reset Email Sent',
+      'Check your inbox for the password reset link. SMTP must be configured in Supabase.',
+    );
+  };
+
+  const handleDeleteAccount = async () => {
+    const result = await tripKeyAlert.confirm(
+      'Delete Account?',
+      'This permanently deletes your TripKey account and all related access. This cannot be undone.',
+    );
+
+    if (!result.isConfirmed) return;
+
+    setAccountActionLoading(true);
+    tripKeyAlert.loading('Deleting account...');
+
+    const { error } = await deleteAccount();
+
+    tripKeyAlert.close();
+    setAccountActionLoading(false);
+
+    if (error) {
+      await tripKeyAlert.error('Delete Failed', error);
+      return;
+    }
+
+    await tripKeyAlert.success('Account Deleted', 'Your account has been deleted successfully.');
+    router.replace('/');
+    router.refresh();
   };
 
   const upcomingCount = recentBookings.filter((booking) => booking.status !== 'completed').length;
@@ -231,6 +280,29 @@ function TouristDashboardHome() {
                   <p className="font-semibold text-gray-900">{recentBookings.length}</p>
                 </div>
               </div>
+            </div>
+
+            <div className="card-base mt-6 border-2 border-sky-100">
+              <h3 className="font-semibold text-gray-900 mb-4">Account Security</h3>
+              <div className="space-y-3">
+                <button
+                  onClick={handlePasswordReset}
+                  disabled={accountActionLoading}
+                  className="w-full rounded-lg border-2 border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-700 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Change Password (Email Link)
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={accountActionLoading}
+                  className="w-full rounded-lg border-2 border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Delete My Account
+                </button>
+              </div>
+              <p className="mt-3 text-xs text-gray-600">
+                Password reset uses SMTP email delivery from Supabase Auth.
+              </p>
             </div>
           </div>
         </div>
