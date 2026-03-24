@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context';
 import { ProviderType } from '@/lib/supabase';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { createBooking } from '@/lib/bookings';
+import { tripKeyAlert } from '@/lib/alerts';
 
 function AddBookingPageContent() {
   const { user, signOut } = useAuth();
@@ -22,8 +23,12 @@ function AddBookingPageContent() {
   const [warning, setWarning] = useState<string | null>(null);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
+    const result = await tripKeyAlert.signOutConfirm();
+    if (result.isConfirmed) {
+      await signOut();
+      router.push('/');
+      await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {

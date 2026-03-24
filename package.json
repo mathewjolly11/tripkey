@@ -14,7 +14,8 @@
     "html5-qrcode": "^2.3.8",
     "next": "^15.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "sweetalert2": "^11.26.24"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",

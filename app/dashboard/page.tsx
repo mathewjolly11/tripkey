@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Booking, supabase } from '@/lib/supabase';
+import { tripKeyAlert } from '@/lib/alerts';
 
 function TouristDashboardHome() {
   const { user, loading, isAuthenticated, signOut } = useAuth();
@@ -53,8 +54,12 @@ function TouristDashboardHome() {
   }
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
+    const result = await tripKeyAlert.signOutConfirm();
+    if (result.isConfirmed) {
+      await signOut();
+      router.push('/');
+      await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
+    }
   };
 
   const upcomingCount = recentBookings.filter((booking) => booking.status !== 'completed').length;

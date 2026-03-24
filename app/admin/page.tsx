@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { tripKeyAlert } from '@/lib/alerts';
 
 function AdminDashboardContent() {
   const { user, signOut } = useAuth();
@@ -18,8 +19,12 @@ function AdminDashboardContent() {
   });
 
   const handleLogout = async () => {
-    await signOut();
-    router.push('/');
+    const result = await tripKeyAlert.signOutConfirm();
+    if (result.isConfirmed) {
+      await signOut();
+      router.push('/');
+      await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
+    }
   };
 
   return (

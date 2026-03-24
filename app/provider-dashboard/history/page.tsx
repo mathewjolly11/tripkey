@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { clearScanHistory, getScanHistory, ScanRecord } from '@/lib/provider-scan-history';
+import { tripKeyAlert } from '@/lib/alerts';
 
 function ProviderHistoryPageContent() {
   const { user, signOut } = useAuth();
@@ -26,8 +27,12 @@ function ProviderHistoryPageContent() {
   }, [user?.id]);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
+    const result = await tripKeyAlert.signOutConfirm();
+    if (result.isConfirmed) {
+      await signOut();
+      router.push('/');
+      await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
+    }
   };
 
   const handleClearHistory = async () => {

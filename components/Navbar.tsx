@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import Logo from '@/components/Logo';
+import { tripKeyAlert } from '@/lib/alerts';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,9 +13,14 @@ export default function Navbar() {
   const router = useRouter();
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
-    setIsOpen(false);
+    const result = await tripKeyAlert.signOutConfirm();
+
+    if (result.isConfirmed) {
+      await signOut();
+      router.push('/');
+      setIsOpen(false);
+      await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
+    }
   };
 
   return (

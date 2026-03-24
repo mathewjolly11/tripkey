@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { tripKeyAlert } from '@/lib/alerts';
 
 function MyQrPageContent() {
   const { user, signOut } = useAuth();
@@ -27,8 +28,12 @@ function MyQrPageContent() {
   }, [touristQrUrl]);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
+    const result = await tripKeyAlert.signOutConfirm();
+    if (result.isConfirmed) {
+      await signOut();
+      router.push('/');
+      await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
+    }
   };
 
   return (
