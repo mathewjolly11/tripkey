@@ -12,6 +12,7 @@ function ProviderScanPageContent() {
   const router = useRouter();
   const scannerRef = useRef<{ stop: () => Promise<void> } | null>(null);
   const hasScannedRef = useRef(false);
+  const isScannerStoppedRef = useRef(false);
 
   const [isStarting, setIsStarting] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,7 @@ function ProviderScanPageContent() {
         const { Html5Qrcode } = await import('html5-qrcode');
         const scanner = new Html5Qrcode('tripkey-qr-reader');
         scannerRef.current = scanner;
+        isScannerStoppedRef.current = false;
 
         await scanner.start(
           { facingMode: 'environment' },
@@ -34,17 +36,18 @@ function ProviderScanPageContent() {
             if (hasScannedRef.current || !user?.id) return;
             hasScannedRef.current = true;
 
-            // Redirect to verify page immediately (don't wait to stop scanner)
+            // Mark scanner as stopped to prevent duplicate stop calls
+            isScannerStoppedRef.current = true;
+
+            // Redirect to verify page immediately
             router.push(`/provider-dashboard/verify?payload=${encodeURIComponent(decodedText)}`);
 
-            // Stop scanner in background without blocking
-            setTimeout(() => {
-              if (scannerRef.current) {
-                scannerRef.current.stop().catch(() => {
-                  // Silently ignore stop errors
-                });
-              }
-            }, 100);
+            // Stop scanner safely in background
+            if (scannerRef.current) {
+              scannerRef.current.stop().catch(() => {
+                // Silently ignore stop errors
+              });
+            }
           },
           () => {
             // Ignore per-frame decode failures.
@@ -66,9 +69,11 @@ function ProviderScanPageContent() {
 
     return () => {
       mounted = false;
-      if (scannerRef.current) {
+      // Only try to stop if scanner hasn't been stopped already
+      if (scannerRef.current && !isScannerStoppedRef.current) {
+        isScannerStoppedRef.current = true;
         scannerRef.current.stop().catch(() => {
-          // no-op cleanup
+          // Silently ignore cleanup stop errors
         });
       }
     };
