@@ -5,16 +5,24 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { clearProviderScanHistory, getProviderScanHistory, ProviderScanRecord } from '@/lib/provider-scan-history';
+import { clearScanHistory, getScanHistory, ScanRecord } from '@/lib/provider-scan-history';
 
 function ProviderHistoryPageContent() {
   const { user, signOut } = useAuth();
   const router = useRouter();
-  const [records, setRecords] = useState<ProviderScanRecord[]>([]);
+  const [records, setRecords] = useState<ScanRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id) return;
-    setRecords(getProviderScanHistory(user.id));
+    const fetchHistory = async () => {
+      if (!user?.id) return;
+      setLoading(true);
+      const history = await getScanHistory(user.id);
+      setRecords(history);
+      setLoading(false);
+    };
+
+    fetchHistory();
   }, [user?.id]);
 
   const handleSignOut = async () => {
@@ -22,10 +30,12 @@ function ProviderHistoryPageContent() {
     router.push('/');
   };
 
-  const handleClearHistory = () => {
+  const handleClearHistory = async () => {
     if (!user?.id) return;
-    clearProviderScanHistory(user.id);
-    setRecords([]);
+    const success = await clearScanHistory(user.id);
+    if (success) {
+      setRecords([]);
+    }
   };
 
   return (
@@ -68,7 +78,11 @@ function ProviderHistoryPageContent() {
           </div>
         </div>
 
-        {records.length === 0 ? (
+        {loading ? (
+          <div className="card-base p-10 text-center border border-sky-100">
+            <p className="text-gray-600">Loading scan history...</p>
+          </div>
+        ) : records.length === 0 ? (
           <div className="card-base p-10 text-center border border-sky-100">
             <p className="text-gray-600 mb-4">No scan history yet.</p>
             <Link href="/provider-dashboard/scan" className="px-5 py-3 rounded-lg bg-sky-500 text-white font-semibold hover:bg-sky-600 transition">
@@ -82,26 +96,49 @@ function ProviderHistoryPageContent() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Scanned At</p>
-                    <p className="font-semibold text-gray-900">{new Date(record.scannedAt).toLocaleString()}</p>
+                    <p className="font-semibold text-gray-900">{new Date(record.scan_time).toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Tourist ID</p>
-                    <p className="font-semibold text-gray-900 break-all">{record.touristId || 'N/A'}</p>
+                    <p className="text-xs text-gray-500 mb-1">Tourist Name</p>
+                    <p className="font-semibold text-gray-900">{record.tourist_name || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Tourist Email</p>
-                    <p className="font-semibold text-gray-900 break-all">{record.touristEmail || 'N/A'}</p>
+                    <p className="font-semibold text-gray-900 break-all">{record.tourist_email || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Tourist Role</p>
-                    <p className="font-semibold text-gray-900">{record.touristRole || 'N/A'}</p>
+                    <p className="text-xs text-gray-500 mb-1">Verification Status</p>
+                    <p className={`font-semibold ${
+                      record.status === 'valid' ? 'text-green-600' :
+                      record.status === 'no_booking' ? 'text-yellow-600' :
+                      'text-red-600'
+                    }`}>
+                      {record.status === 'valid' ? 'VALID' :
+                       record.status === 'no_booking' ? 'NO BOOKING' :
+                       'INVALID'}
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <p className="text-xs text-gray-500 mb-1">Raw Payload</p>
-                  <p className="text-xs text-gray-700 break-all bg-sky-50 border border-sky-100 rounded-lg p-3">{record.rawPayload}</p>
-                </div>
+                {record.booking_title && (
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Booking Type</p>
+                      <p className="font-semibold text-gray-900 capitalize">{record.booking_type || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Booking Title</p>
+                      <p className="font-semibold text-gray-900">{record.booking_title}</p>
+                    </div>
+                  </div>
+                )}
+
+                {record.raw_payload && (
+                  <div className="mt-4">
+                    <p className="text-xs text-gray-500 mb-1">Raw Payload</p>
+                    <p className="text-xs text-gray-700 break-all bg-sky-50 border border-sky-100 rounded-lg p-3">{record.raw_payload}</p>
+                  </div>
+                )}
               </div>
             ))}
           </div>

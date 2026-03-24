@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { extractTouristTokenFromQrUrl, tryParseTripKeyPayload } from '@/lib/provider-scan-history';
+import { extractTouristTokenFromQrUrl, tryParseTripKeyPayload, addScanRecord } from '@/lib/provider-scan-history';
 import { Booking, supabase } from '@/lib/supabase';
 
 interface TouristProfile {
@@ -69,15 +69,46 @@ function ProviderVerifyPageContent() {
 
         setTouristProfile(tourist || null);
         setBooking(matchedBooking || null);
+
+        // Record the scan in the database
+        if (user?.id) {
+          const scanStatus = matchedBooking ? 'valid' : 'no_booking';
+          await addScanRecord({
+            provider_id: user.id,
+            tourist_id: token || null,
+            booking_id: matchedBooking?.id || null,
+            status: scanStatus,
+            tourist_name: tourist?.name || null,
+            tourist_email: tourist?.email || null,
+            booking_type: matchedBooking?.type || null,
+            booking_title: matchedBooking?.title || null,
+            raw_payload: payload || null,
+          });
+        }
       } catch (err) {
         setError((err as Error).message);
+
+        // Record failed scan
+        if (user?.id) {
+          await addScanRecord({
+            provider_id: user.id,
+            tourist_id: null,
+            booking_id: null,
+            status: 'invalid',
+            tourist_name: null,
+            tourist_email: null,
+            booking_type: null,
+            booking_title: null,
+            raw_payload: payload || null,
+          });
+        }
       } finally {
         setLoading(false);
       }
     };
 
     runVerification();
-  }, [parsed.touristId, tokenFromUrl, user?.provider_type]);
+  }, [parsed.touristId, tokenFromUrl, user?.provider_type, user?.id, payload]);
 
   const hasValidBooking = Boolean(booking);
 

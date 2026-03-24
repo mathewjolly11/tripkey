@@ -32,3 +32,18 @@ export interface Booking {
   status: string;
   created_at: string;
 }
+
+export interface Scan {
+  id: string;
+  provider_id: string;
+  tourist_id: string | null;
+  booking_id: string | null;
+  scan_time: string;
+  status: 'valid' | 'invalid' | 'no_booking';
+  tourist_name: string | null;
+  tourist_email: string | null;
+  booking_type: string | null;
+  booking_title: string | null;
+  raw_payload: string | null;
+  created_at: string;
+}
