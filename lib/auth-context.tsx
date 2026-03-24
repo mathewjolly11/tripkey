@@ -207,6 +207,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name,
+            role,
+            provider_type: role === 'provider' ? (providerType || 'hotel') : null,
+          }
+        }
       });
 
       if (signUpError) {
@@ -217,18 +224,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: 'Signup failed: User not created' };
       }
 
+      // Wait a bit for the trigger to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Create user profile in profiles table
-      const { error: profileError } = await supabase.from('profiles').insert({
+      // Using upsert to handle cases where profile might already exist from trigger
+      const { error: profileError } = await supabase.from('profiles').upsert({
         id: data.user.id,
         email,
         name,
         role,
         provider_type: role === 'provider' ? (providerType || 'hotel') : null,
         created_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
       });
 
       if (profileError) {
-        return { error: `Profile creation failed: ${profileError.message}` };
+        // Log but don't fail if it's just a conflict issue
+        console.error('Profile upsert error:', profileError);
+        // Only fail if it's not a duplicate key error
+        if (!profileError.message.includes('duplicate') && !profileError.message.includes('already exists')) {
+          return { error: `Profile creation failed: ${profileError.message}` };
+        }
       }
 
       return { error: null };

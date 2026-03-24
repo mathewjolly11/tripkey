@@ -36,7 +36,7 @@ function AddBookingPageContent() {
     }
 
     if (!title.trim() || !bookingDate) {
-      setError('Please fill all required fields.');
+      setError('Please fill in all required fields: Booking Type, Title, and Booking Date.');
       return;
     }
 
@@ -78,16 +78,20 @@ function AddBookingPageContent() {
       <main className="container-max py-10">
         <div className="max-w-xl card-base">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Create New Booking</h2>
-          <p className="text-gray-600 mb-6">Add your booking and optionally upload a ticket proof.</p>
+          <p className="text-gray-600 mb-2">Fill in the booking details below.</p>
+          <p className="text-sm text-gray-500 mb-6"><span className="text-red-500">*</span> Required fields</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="type" className="block text-sm font-semibold text-gray-900 mb-2">Booking Type</label>
+              <label htmlFor="type" className="block text-sm font-semibold text-gray-900 mb-2">
+                Booking Type <span className="text-red-500">*</span>
+              </label>
               <select
                 id="type"
                 value={type}
                 onChange={(e) => setType(e.target.value as ProviderType)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
+                required
               >
                 <option value="hotel">Hotel</option>
                 <option value="transport">Transport</option>
@@ -96,7 +100,9 @@ function AddBookingPageContent() {
             </div>
 
             <div>
-              <label htmlFor="title" className="block text-sm font-semibold text-gray-900 mb-2">Title</label>
+              <label htmlFor="title" className="block text-sm font-semibold text-gray-900 mb-2">
+                Booking Title <span className="text-red-500">*</span>
+              </label>
               <input
                 id="title"
                 type="text"
@@ -109,7 +115,9 @@ function AddBookingPageContent() {
             </div>
 
             <div>
-              <label htmlFor="bookingDate" className="block text-sm font-semibold text-gray-900 mb-2">Booking Date</label>
+              <label htmlFor="bookingDate" className="block text-sm font-semibold text-gray-900 mb-2">
+                Booking Date <span className="text-red-500">*</span>
+              </label>
               <input
                 id="bookingDate"
                 type="date"
@@ -121,7 +129,9 @@ function AddBookingPageContent() {
             </div>
 
             <div>
-              <label htmlFor="ticket" className="block text-sm font-semibold text-gray-900 mb-2">Ticket Upload (Optional)</label>
+              <label htmlFor="ticket" className="block text-sm font-semibold text-gray-900 mb-2">
+                Ticket Upload <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
               <input
                 id="ticket"
                 type="file"
@@ -129,7 +139,7 @@ function AddBookingPageContent() {
                 onChange={(e) => setTicketFile(e.target.files?.[0] || null)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
               />
-              <p className="text-xs text-gray-500 mt-1">Supported: PDF, PNG, JPG</p>
+              <p className="text-xs text-gray-500 mt-1">Supported formats: PDF, PNG, JPG</p>
             </div>
 
             {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
