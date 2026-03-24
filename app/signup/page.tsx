@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -23,8 +23,15 @@ export default function SignupPage() {
   const [providerType, setProviderType] = useState('hotel');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace(roleRedirect(user?.role || 'tourist'));
+      router.refresh();
+    }
+  }, [authLoading, isAuthenticated, router, user?.role]);
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +81,8 @@ export default function SignupPage() {
       const roleText = role === 'tourist' ? 'Traveler' : role === 'provider' ? 'Service Provider' : 'Administrator';
       await tripKeyAlert.success('Account Created!', `Welcome to TripKey, ${name}! You're now registered as a ${roleText}.`);
       setLoading(false);
-      router.push(roleRedirect(role));
+      router.replace(roleRedirect(role));
+      router.refresh();
     }
   };
 
@@ -102,7 +110,7 @@ export default function SignupPage() {
             <button
               type="button"
               onClick={() => setStep(2)}
-              disabled={loading}
+              disabled={loading || authLoading}
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-sky-300 hover:bg-sky-50 transition-all flex items-center justify-center gap-2 font-semibold text-gray-900 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -289,7 +297,7 @@ export default function SignupPage() {
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || authLoading}
                 className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Creating Account...' : 'Create Account'}
@@ -313,7 +321,7 @@ export default function SignupPage() {
                 }
                 // Loading stays true while redirecting to Google
               }}
-              disabled={loading}
+              disabled={loading || authLoading}
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-sky-300 hover:bg-sky-50 transition-all flex items-center justify-center gap-2 font-semibold text-gray-900 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

@@ -49,7 +49,6 @@ export async function createBooking(input: CreateBookingInput): Promise<{ bookin
         const { data: publicData } = supabase.storage.from(TICKETS_BUCKET).getPublicUrl(fileName);
         if (publicData && publicData.publicUrl) {
           ticketUrl = publicData.publicUrl;
-          console.log('Image uploaded successfully:', ticketUrl);
         } else {
           warning = 'Could not generate public URL for image';
         }
@@ -72,8 +71,6 @@ export async function createBooking(input: CreateBookingInput): Promise<{ bookin
       created_at: new Date().toISOString(),
     };
 
-    console.log('Creating booking with data:', bookingData);
-
     const { data, error } = await supabase
       .from('bookings')
       .insert(bookingData)
@@ -85,7 +82,6 @@ export async function createBooking(input: CreateBookingInput): Promise<{ bookin
       throw new Error(`Database error: ${error.message}`);
     }
 
-    console.log('Booking created:', data);
     return { booking: data, warning };
   } catch (err) {
     console.error('Booking creation exception:', err);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
@@ -33,6 +33,11 @@ function getOAuthSignupContext() {
   }
 }
 
+function clearOAuthSignupContext() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(OAUTH_SIGNUP_CONTEXT_KEY);
+}
+
 function getRoleRedirect(role?: string) {
   if (role === 'provider') return '/provider-dashboard';
   if (role === 'admin') return '/admin';
@@ -42,17 +47,21 @@ function getRoleRedirect(role?: string) {
 export default function AuthCallbackPage() {
   const router = useRouter();
   const { loading } = useAuth();
+  const handledRef = useRef(false);
 
   useEffect(() => {
     const handleCallback = async () => {
-      if (loading) return;
+      if (loading || handledRef.current) return;
+      handledRef.current = true;
 
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (!session?.user) {
-        router.push('/login');
+        clearOAuthSignupContext();
+        router.replace('/login');
+        router.refresh();
         return;
       }
 
@@ -103,7 +112,9 @@ export default function AuthCallbackPage() {
         console.error('Failed to upsert profile in callback:', error);
       }
 
-      router.push(getRoleRedirect(role));
+      clearOAuthSignupContext();
+      router.replace(getRoleRedirect(role));
+      router.refresh();
     };
 
     handleCallback();

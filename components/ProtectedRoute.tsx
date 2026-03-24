@@ -30,13 +30,17 @@ export function ProtectedRoute({
   useEffect(() => {
     if (loading) return;
 
+    setIsAuthorized(false);
+
     if (!user) {
-      router.push('/login');
+      router.replace('/login');
+      router.refresh();
       return;
     }
 
     if (!allowedRoles.includes(user.role)) {
-      router.push(fallbackRoute);
+      router.replace(fallbackRoute);
+      router.refresh();
       return;
     }
 

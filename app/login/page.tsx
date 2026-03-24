@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -18,14 +18,21 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { signIn, signInWithGoogle } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const { signIn, signInWithGoogle, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace(roleRedirect(user?.role));
+      router.refresh();
+    }
+  }, [authLoading, isAuthenticated, router, user?.role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setSubmitting(true);
 
     tripKeyAlert.loading('Signing in...');
 
@@ -34,7 +41,7 @@ export default function LoginPage() {
     if (error) {
       tripKeyAlert.close();
       setError(error);
-      setLoading(false);
+      setSubmitting(false);
       await tripKeyAlert.error('Sign In Failed', error);
     } else {
       const {
@@ -43,8 +50,9 @@ export default function LoginPage() {
 
       if (!user) {
         tripKeyAlert.close();
-        setLoading(false);
-        router.push('/dashboard');
+        setSubmitting(false);
+        router.replace('/dashboard');
+        router.refresh();
         return;
       }
 
@@ -56,8 +64,9 @@ export default function LoginPage() {
 
       tripKeyAlert.close();
       await tripKeyAlert.success('Welcome!', `Signed in successfully as ${user.email}`);
-      setLoading(false);
-      router.push(roleRedirect(profile?.role));
+      setSubmitting(false);
+      router.replace(roleRedirect(profile?.role));
+      router.refresh();
     }
   };
 
@@ -117,10 +126,10 @@ export default function LoginPage() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={submitting || authLoading}
             className="btn-primary w-full mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {submitting ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
@@ -135,16 +144,16 @@ export default function LoginPage() {
         <button
           onClick={async () => {
             setError('');
-            setLoading(true);
+            setSubmitting(true);
             const { error } = await signInWithGoogle();
             if (error) {
               setError(error);
-              setLoading(false);
+              setSubmitting(false);
               await tripKeyAlert.error('Sign In Failed', error);
             }
             // Loading stays true while redirecting to Google
           }}
-          disabled={loading}
+          disabled={submitting || authLoading}
           className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-sky-300 hover:bg-sky-50 transition-all flex items-center justify-center gap-2 font-semibold text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -153,7 +162,7 @@ export default function LoginPage() {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
-          {loading ? 'Connecting...' : 'Sign in with Google'}
+          {submitting ? 'Connecting...' : 'Sign in with Google'}
         </button>
 
         {/* Divider */}

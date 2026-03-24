@@ -18,6 +18,11 @@ function setOAuthSignupContext(context: OAuthSignupContext) {
   window.localStorage.setItem(OAUTH_SIGNUP_CONTEXT_KEY, JSON.stringify(context));
 }
 
+function clearOAuthSignupContext() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(OAUTH_SIGNUP_CONTEXT_KEY);
+}
+
 function getOAuthSignupContext(): OAuthSignupContext | null {
   if (typeof window === 'undefined') return null;
 
@@ -28,11 +33,12 @@ function getOAuthSignupContext(): OAuthSignupContext | null {
     const parsed = JSON.parse(raw) as OAuthSignupContext;
     const isRecent = Date.now() - parsed.createdAt < 10 * 60 * 1000;
     if (!isRecent) {
-      window.localStorage.removeItem(OAUTH_SIGNUP_CONTEXT_KEY);
+      clearOAuthSignupContext();
       return null;
     }
     return parsed;
   } catch {
+    clearOAuthSignupContext();
     return null;
   }
 }
@@ -110,11 +116,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Temporary compatibility guard: some DBs have a trigger using NEW.updated_at
       // but the profiles table might not include that column yet.
       if (error.message.includes('record "new" has no field "updated_at"')) {
-        console.warn('profiles.updated_at missing in DB; skipping profile upsert update path.');
         return;
       }
       throw new Error(`Profile upsert failed: ${error.message}`);
     }
+  };
+
+  const fetchProfile = async (userId: string): Promise<User | null> => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) {
+      return null;
+    }
+
+    return (data as User | null) || null;
   };
 
   // Initialize session on mount
@@ -136,15 +155,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             oauthContext?.providerType
           );
 
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+          const profile = await fetchProfile(session.user.id);
 
-          if (data) {
-            setUser(data);
+          if (profile) {
+            setUser(profile);
+          } else {
+            // Keep app usable even if profile row is delayed.
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name:
+                session.user.user_metadata?.full_name ||
+                session.user.user_metadata?.name ||
+                session.user.email?.split('@')[0] ||
+                'TripKey User',
+              role: (oauthContext?.mode === 'signup' ? oauthContext.role : 'tourist') || 'tourist',
+              provider_type: oauthContext?.providerType,
+              created_at: new Date().toISOString(),
+            });
           }
+
+          clearOAuthSignupContext();
+        } else {
+          clearOAuthSignupContext();
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -173,20 +206,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch (profileError) {
             console.error(profileError);
           }
+
+          const profile = await fetchProfile(session.user.id);
+          if (profile) {
+            setUser(profile);
+          } else {
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name:
+                session.user.user_metadata?.full_name ||
+                session.user.user_metadata?.name ||
+                session.user.email?.split('@')[0] ||
+                'TripKey User',
+              role: (oauthContext?.mode === 'signup' ? oauthContext.role : 'tourist') || 'tourist',
+              provider_type: oauthContext?.providerType,
+              created_at: new Date().toISOString(),
+            });
+          }
+
+          clearOAuthSignupContext();
+          return;
         }
 
-        // Fetch user profile
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (data) {
-          setUser(data);
+        const profile = await fetchProfile(session.user.id);
+        if (profile) {
+          setUser(profile);
         }
       } else {
         setUser(null);
+        clearOAuthSignupContext();
       }
     });
 
@@ -257,13 +306,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<{ error: null | string }> => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
         return { error: error.message };
+      }
+
+      if (data.user) {
+        await upsertProfileFromSessionUser(data.user, 'tourist');
       }
 
       return { error: null };
@@ -277,6 +330,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await supabase.auth.signOut();
       setSession(null);
       setUser(null);
+      clearOAuthSignupContext();
     } catch (error) {
       console.error('Sign out error:', error);
     }
