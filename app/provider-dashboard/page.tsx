@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { getProviderScanHistory } from '../../lib/provider-scan-history';
+import { getScanHistory } from '../../lib/provider-scan-history';
 
 function ProviderDashboardContent() {
   const { user, signOut } = useAuth();
@@ -17,20 +17,24 @@ function ProviderDashboardContent() {
   });
 
   useEffect(() => {
-    if (!user?.id) return;
+    const fetchStats = async () => {
+      if (!user?.id) return;
 
-    const history = getProviderScanHistory(user.id);
-    const today = new Date().toDateString();
-    const todayScans = history.filter((item) => new Date(item.scannedAt).toDateString() === today).length;
-    const lastScanAt = history.length > 0
-      ? new Date(history[0].scannedAt).toLocaleString()
-      : 'No scans yet';
+      const history = await getScanHistory(user.id);
+      const today = new Date().toDateString();
+      const todayScans = history.filter((item) => new Date(item.scan_time).toDateString() === today).length;
+      const lastScanAt = history.length > 0
+        ? new Date(history[0].scan_time).toLocaleString()
+        : 'No scans yet';
 
-    setStats({
-      totalScans: history.length,
-      todayScans,
-      lastScanAt,
-    });
+      setStats({
+        totalScans: history.length,
+        todayScans,
+        lastScanAt,
+      });
+    };
+
+    fetchStats();
   }, [user?.id]);
 
   const handleLogout = async () => {

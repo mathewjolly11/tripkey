@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { addProviderScanRecord, tryParseTripKeyPayload } from '@/lib/provider-scan-history';
 
 function ProviderScanPageContent() {
   const { user, signOut } = useAuth();
@@ -34,25 +33,14 @@ function ProviderScanPageContent() {
             if (hasScannedRef.current || !user?.id) return;
             hasScannedRef.current = true;
 
-            const parsed = tryParseTripKeyPayload(decodedText);
-            addProviderScanRecord({
-              id: crypto.randomUUID(),
-              providerId: user.id,
-              providerName: user.name || 'Provider',
-              providerType: user.provider_type || 'unknown',
-              scannedAt: new Date().toISOString(),
-              rawPayload: decodedText,
-              touristId: parsed.touristId,
-              touristEmail: parsed.touristEmail,
-              touristRole: parsed.touristRole,
-            });
-
+            // Stop scanner before redirecting
             try {
               await scanner.stop();
             } catch {
               // no-op
             }
 
+            // Redirect to verify page (scan recording happens there)
             router.push(`/provider-dashboard/verify?payload=${encodeURIComponent(decodedText)}`);
           },
           () => {
@@ -81,7 +69,7 @@ function ProviderScanPageContent() {
         });
       }
     };
-  }, [router, user?.id, user?.name, user?.provider_type]);
+  }, [router, user?.id]);
 
   const handleSignOut = async () => {
     await signOut();
