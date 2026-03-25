@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { tripKeyAlert } from '@/lib/alerts';
 
@@ -14,7 +15,7 @@ function roleRedirect(role: string, verificationStatus?: string | null) {
   return '/dashboard';
 }
 
-export default function SignupPage() {
+function SignupPageContent() {
   const [step, setStep] = useState(1); // Step 1: Basic info, Step 2: Role selection
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -535,5 +536,21 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center px-4 py-8">
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl px-6 py-4 shadow-xl text-gray-700 font-medium">
+            Loading signup...
+          </div>
+        </div>
+      }
+    >
+      <SignupPageContent />
+    </Suspense>
   );
 }
