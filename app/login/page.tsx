@@ -9,8 +9,8 @@ import { supabase } from '@/lib/supabase';
 import { tripKeyAlert } from '@/lib/alerts';
 
 function roleRedirect(role?: string, verificationStatus?: string | null) {
-  if (role === 'provider' || verificationStatus) return '/provider-onboarding';
   if (role === 'admin') return '/admin';
+  if (role === 'provider' && verificationStatus) return '/provider-onboarding';
   return '/dashboard';
 }
 
