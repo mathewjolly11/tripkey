@@ -24,6 +24,8 @@ export const tripKeyAlert = {
       background: TRIPKEY_THEME.background,
       titleText: title,
       allowOutsideClick: false,
+      timer: 3000,
+      timerProgressBar: true,
       customClass: {
         title: 'text-gray-900 font-bold',
         confirmButton: 'bg-sky-500 hover:bg-sky-600 text-white font-semibold px-6 py-2 rounded-lg',
@@ -41,6 +43,8 @@ export const tripKeyAlert = {
       confirmButtonText: 'OK',
       background: TRIPKEY_THEME.background,
       allowOutsideClick: false,
+      timer: 3000,
+      timerProgressBar: true,
       customClass: {
         title: 'text-gray-900 font-bold',
         confirmButton: 'bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-lg',
