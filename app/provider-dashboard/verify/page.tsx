@@ -125,11 +125,12 @@ function ProviderVerifyPageContent() {
       await updateBookingVerification(booking.id, 'approved', user.id);
       tripKeyAlert.close();
       await tripKeyAlert.success('Booking Approved', `Booking "${booking.title}" has been verified and approved.`);
+      await new Promise(resolve => setTimeout(resolve, 500));
       setBooking({ ...booking, verification_status: 'approved' });
+      setVerifying(false);
     } catch (err) {
       tripKeyAlert.close();
       await tripKeyAlert.error('Error', (err as Error).message);
-    } finally {
       setVerifying(false);
     }
   };
@@ -144,11 +145,12 @@ function ProviderVerifyPageContent() {
       await updateBookingVerification(booking.id, 'rejected', user.id);
       tripKeyAlert.close();
       await tripKeyAlert.success('Booking Rejected', `Booking "${booking.title}" has been rejected.`);
+      await new Promise(resolve => setTimeout(resolve, 500));
       setBooking({ ...booking, verification_status: 'rejected' });
+      setVerifying(false);
     } catch (err) {
       tripKeyAlert.close();
       await tripKeyAlert.error('Error', (err as Error).message);
-    } finally {
       setVerifying(false);
     }
   };
