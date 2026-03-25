@@ -46,8 +46,17 @@ function AddBookingPageContent() {
       return;
     }
 
+    // Check file size (warn if > 5MB)
+    if (ticketFile.size > 5 * 1024 * 1024) {
+      const result = await tripKeyAlert.confirm(
+        'Large File',
+        `This file is ${(ticketFile.size / 1024 / 1024).toFixed(1)}MB. Upload may take longer. Continue?`
+      );
+      if (!result.isConfirmed) return;
+    }
+
     setSubmitting(true);
-    tripKeyAlert.loading('Creating your booking...');
+    tripKeyAlert.loading('Uploading image and creating booking...');
 
     try {
       const result = await createBooking({
@@ -171,6 +180,11 @@ function AddBookingPageContent() {
                 required
               />
               <p className="text-xs text-gray-500 mt-1">Upload confirmation screenshot/image from the service provider (PDF, PNG, JPG)</p>
+              {ticketFile && (
+                <p className="text-xs text-sky-600 mt-2">
+                  Selected: {ticketFile.name} ({(ticketFile.size / 1024).toFixed(1)} KB)
+                </p>
+              )}
             </div>
 
             {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
