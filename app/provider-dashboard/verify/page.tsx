@@ -25,7 +25,8 @@ function ProviderVerifyPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [touristToken, setTouristToken] = useState<string | null>(null);
   const [touristProfile, setTouristProfile] = useState<TouristProfile | null>(null);
-  const [booking, setBooking] = useState<Booking | null>(null);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [verifying, setVerifying] = useState(false);
 
   const parsed = tryParseTripKeyPayload(payload);
@@ -61,31 +62,32 @@ function ProviderVerifyPageContent() {
             .from('bookings')
             .select('*')
             .eq('user_id', token)
-            .order('booking_date', { ascending: false })
-            .limit(1),
+            .order('booking_date', { ascending: false }),
         ]);
 
         if (bookingError) {
           throw new Error(bookingError.message);
         }
 
-        const matchedBooking = bookings && bookings.length > 0 ? bookings[0] : null;
-
         setTouristProfile(tourist || null);
-        setBooking(matchedBooking || null);
+        setAllBookings(bookings || []);
+
+        // Auto-select first booking
+        const firstBooking = bookings && bookings.length > 0 ? bookings[0] : null;
+        setSelectedBooking(firstBooking || null);
 
         // Record the scan in the database
         if (user?.id) {
-          const scanStatus = matchedBooking ? 'valid' : 'no_booking';
+          const scanStatus = firstBooking ? 'valid' : 'no_booking';
           await addScanRecord({
             provider_id: user.id,
             tourist_id: token || null,
-            booking_id: matchedBooking?.id || null,
+            booking_id: firstBooking?.id || null,
             status: scanStatus,
             tourist_name: tourist?.name || null,
             tourist_email: tourist?.email || null,
-            booking_type: matchedBooking?.type || null,
-            booking_title: matchedBooking?.title || null,
+            booking_type: firstBooking?.type || null,
+            booking_title: firstBooking?.title || null,
             raw_payload: payload || null,
           });
         }
@@ -115,17 +117,17 @@ function ProviderVerifyPageContent() {
   }, [parsed.touristId, tokenFromUrl, user?.provider_type, user?.id, payload]);
 
   const handleApprove = async () => {
-    if (!booking || !user?.id) return;
+    if (!selectedBooking || !user?.id) return;
 
     setVerifying(true);
     tripKeyAlert.loading('Approving booking...');
 
     try {
-      await updateBookingVerification(booking.id, 'approved', user.id);
+      await updateBookingVerification(selectedBooking.id, 'approved', user.id);
       tripKeyAlert.close();
-      await tripKeyAlert.success('Booking Approved', `Booking "${booking.title}" has been verified and approved.`);
+      await tripKeyAlert.success('Booking Approved', `Booking "${selectedBooking.title}" has been verified and approved.`);
       await new Promise(resolve => setTimeout(resolve, 500));
-      setBooking({ ...booking, verification_status: 'approved' });
+      setSelectedBooking({ ...selectedBooking, verification_status: 'approved' });
       setVerifying(false);
     } catch (err) {
       tripKeyAlert.close();
@@ -135,17 +137,17 @@ function ProviderVerifyPageContent() {
   };
 
   const handleReject = async () => {
-    if (!booking || !user?.id) return;
+    if (!selectedBooking || !user?.id) return;
 
     setVerifying(true);
     tripKeyAlert.loading('Rejecting booking...');
 
     try {
-      await updateBookingVerification(booking.id, 'rejected', user.id);
+      await updateBookingVerification(selectedBooking.id, 'rejected', user.id);
       tripKeyAlert.close();
-      await tripKeyAlert.success('Booking Rejected', `Booking "${booking.title}" has been rejected.`);
+      await tripKeyAlert.success('Booking Rejected', `Booking "${selectedBooking.title}" has been rejected.`);
       await new Promise(resolve => setTimeout(resolve, 500));
-      setBooking({ ...booking, verification_status: 'rejected' });
+      setSelectedBooking({ ...selectedBooking, verification_status: 'rejected' });
       setVerifying(false);
     } catch (err) {
       tripKeyAlert.close();
@@ -154,8 +156,8 @@ function ProviderVerifyPageContent() {
     }
   };
 
-  const hasValidBooking = Boolean(booking);
-  const isAlreadyVerified = booking?.verification_status && booking.verification_status !== 'pending';
+  const hasValidBooking = Boolean(selectedBooking);
+  const isAlreadyVerified = selectedBooking?.verification_status && selectedBooking.verification_status !== 'pending';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-white">
@@ -188,6 +190,44 @@ function ProviderVerifyPageContent() {
                 </div>
               </div>
 
+              {allBookings.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Booking to Verify ({allBookings.length})</h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    {allBookings.map((booking) => (
+                      <button
+                        key={booking.id}
+                        onClick={() => setSelectedBooking(booking)}
+                        className={`p-4 rounded-lg border-2 text-left transition ${
+                          selectedBooking?.id === booking.id
+                            ? 'border-sky-500 bg-sky-50'
+                            : 'border-gray-200 bg-white hover:border-sky-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-gray-900">{booking.title}</p>
+                            <p className="text-sm text-gray-600 capitalize">{booking.type} • {new Date(booking.booking_date).toLocaleDateString()}</p>
+                            <p className="text-xs text-gray-500 mt-1">Ref: {booking.booking_reference}</p>
+                          </div>
+                          <div className="text-right">
+                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                              booking.verification_status === 'approved'
+                                ? 'bg-green-100 text-green-700'
+                                : booking.verification_status === 'rejected'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {booking.verification_status || 'pending'}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {hasValidBooking && (
                 <>
                   <div className="mb-8">
@@ -195,30 +235,30 @@ function ProviderVerifyPageContent() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="rounded-lg border border-sky-100 p-4 bg-white">
                         <p className="text-xs text-gray-500 mb-1">Title</p>
-                        <p className="font-semibold text-gray-900">{booking?.title || '—'}</p>
+                        <p className="font-semibold text-gray-900">{selectedBooking?.title || '—'}</p>
                       </div>
                       <div className="rounded-lg border border-sky-100 p-4 bg-white">
                         <p className="text-xs text-gray-500 mb-1">Type</p>
-                        <p className="font-semibold text-gray-900 capitalize">{booking?.type || '—'}</p>
+                        <p className="font-semibold text-gray-900 capitalize">{selectedBooking?.type || '—'}</p>
                       </div>
                       <div className="rounded-lg border border-sky-100 p-4 bg-white">
                         <p className="text-xs text-gray-500 mb-1">Booking Date</p>
-                        <p className="font-semibold text-gray-900">{booking?.booking_date ? new Date(booking.booking_date).toLocaleDateString() : '—'}</p>
+                        <p className="font-semibold text-gray-900">{selectedBooking?.booking_date ? new Date(selectedBooking.booking_date).toLocaleDateString() : '—'}</p>
                       </div>
                       <div className="rounded-lg border border-sky-100 p-4 bg-white">
                         <p className="text-xs text-gray-500 mb-1">Reference</p>
-                        <p className="font-semibold text-gray-900 break-all">{booking?.booking_reference || '—'}</p>
+                        <p className="font-semibold text-gray-900 break-all">{selectedBooking?.booking_reference || '—'}</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="mb-8">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Confirmation Image</h3>
-                    {booking?.ticket_url ? (
+                    {selectedBooking?.ticket_url ? (
                       <div className="rounded-lg border border-sky-200 bg-sky-50 p-4">
-                        {booking.ticket_url.toLowerCase().endsWith('.pdf') ? (
+                        {selectedBooking.ticket_url.toLowerCase().endsWith('.pdf') ? (
                           <a
-                            href={booking.ticket_url}
+                            href={selectedBooking.ticket_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-block px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition font-semibold"
@@ -233,7 +273,7 @@ function ProviderVerifyPageContent() {
                         ) : (
                           <div className="relative max-h-96 w-full overflow-hidden rounded-lg border border-sky-300 bg-white" style={{ aspectRatio: '4 / 3' }}>
                             <Image
-                              src={booking.ticket_url}
+                              src={selectedBooking.ticket_url}
                               alt="Booking confirmation"
                               fill
                               sizes="(max-width: 768px) 100vw, 640px"
@@ -285,13 +325,13 @@ function ProviderVerifyPageContent() {
                   {isAlreadyVerified && (
                     <div
                       className={`rounded-lg p-4 mb-8 ${
-                        booking.verification_status === 'approved'
+                        selectedBooking.verification_status === 'approved'
                           ? 'bg-green-50 border border-green-200 text-green-700'
                           : 'bg-red-50 border border-red-200 text-red-700'
                       }`}
                     >
                       <p className="font-semibold inline-flex items-center gap-2">
-                        {booking.verification_status === 'approved' ? (
+                        {selectedBooking.verification_status === 'approved' ? (
                           <>
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
