@@ -3,6 +3,14 @@ const nextConfig = {
   reactStrictMode: true,
   // Vercel uses the default .next directory
   // distDir is removed for Vercel compatibility
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;

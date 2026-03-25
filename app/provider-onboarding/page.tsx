@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { tripKeyAlert } from '@/lib/alerts';
 import { supabase } from '@/lib/supabase';
@@ -302,11 +302,16 @@ export default function ProviderOnboardingPage() {
               >
                 {documentPreview ? (
                   <div className="relative w-full h-full p-4">
-                    <img
-                      src={documentPreview}
-                      alt="Document preview"
-                      className="w-full h-full object-contain rounded-lg"
-                    />
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={documentPreview}
+                        alt="Document preview"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 720px"
+                        unoptimized
+                        className="object-contain rounded-lg"
+                      />
+                    </div>
                   </div>
                 ) : verificationDocument ? (
                   <div className="flex flex-col items-center justify-center py-4">

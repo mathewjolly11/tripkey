@@ -1,6 +1,6 @@
-import { DotIcon } from "@/assets/icons";
-import { formatMessageTime } from "@/lib/format-message-time";
-import { cn } from "@/lib/utils";
+import { DotIcon } from "../../../assets/icons";
+import { formatMessageTime } from "../../../lib/format-message-time";
+import { cn } from "../../../lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { getChatsData } from "../fetch";
