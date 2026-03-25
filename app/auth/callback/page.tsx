@@ -40,8 +40,8 @@ function clearOAuthSignupContext() {
 }
 
 function getRoleRedirect(role?: string, verificationStatus?: string | null) {
-  if (role === 'provider' || verificationStatus) return '/provider-onboarding';
   if (role === 'admin') return '/admin';
+  if (role === 'provider' && verificationStatus) return '/provider-onboarding';
   return '/dashboard';
 }
 
@@ -143,7 +143,7 @@ export default function AuthCallbackPage() {
       router.refresh();
       setTimeout(() => {
         tripKeyAlert.close();
-      }, 1200);
+      }, 2000);
     };
 
     handleCallback();
