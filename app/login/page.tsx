@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -14,7 +14,22 @@ function roleRedirect(role?: string, verificationStatus?: string | null) {
   return '/dashboard';
 }
 
-export default function LoginPage() {
+function LogoutDetector() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const loggedOut = searchParams.get('loggedOut');
+    if (loggedOut === '1') {
+      tripKeyAlert.success('Logout Successful', 'You have been signed out.');
+      router.replace('/login');
+    }
+  }, [router, searchParams]);
+
+  return null;
+}
+
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +37,6 @@ export default function LoginPage() {
   const [sendingReset, setSendingReset] = useState(false);
   const { signIn, signInWithGoogle, requestPasswordReset, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -34,14 +48,6 @@ export default function LoginPage() {
       }, 800);
     }
   }, [authLoading, isAuthenticated, router, user?.role, user?.verification_status]);
-
-  useEffect(() => {
-    const loggedOut = searchParams.get('loggedOut');
-    if (loggedOut === '1') {
-      tripKeyAlert.success('Logout Successful', 'You have been signed out.');
-      router.replace('/login');
-    }
-  }, [router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,5 +295,14 @@ export default function LoginPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LogoutDetector />
+      <LoginContent />
+    </Suspense>
   );
 }
