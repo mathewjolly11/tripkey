@@ -199,19 +199,41 @@ function TouristDashboardHome() {
               <h3 className="font-semibold text-gray-900 mb-4">Tourist Actions</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Link href="/dashboard/bookings" className="p-4 border-2 border-gray-300 rounded-lg hover:border-sky-500 hover:bg-sky-50 transition-all">
-                  <p className="font-semibold text-gray-900 mb-1">📚 My Bookings</p>
+                  <p className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v14m0-14a4 4 0 014-4h4v14h-4a4 4 0 00-4 4zm0-14a4 4 0 00-4-4H4v14h4a4 4 0 014 4" />
+                    </svg>
+                    My Bookings
+                  </p>
                   <p className="text-sm text-gray-600">See all hotel, transport, and attraction reservations</p>
                 </Link>
                 <Link href="/dashboard/add-booking" className="p-4 border-2 border-gray-300 rounded-lg hover:border-sky-500 hover:bg-sky-50 transition-all">
-                  <p className="font-semibold text-gray-900 mb-1">➕ Add Booking</p>
+                  <p className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m-7-7h14" />
+                    </svg>
+                    Add Booking
+                  </p>
                   <p className="text-sm text-gray-600">Add a new booking and optionally upload your ticket</p>
                 </Link>
                 <Link href="/dashboard/my-qr" className="p-4 border-2 border-gray-300 rounded-lg hover:border-sky-500 hover:bg-sky-50 transition-all">
-                  <p className="font-semibold text-gray-900 mb-1">🎟️ My QR Pass</p>
+                  <p className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9V7a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v2m0 4v2m0 4v1" />
+                    </svg>
+                    My QR Pass
+                  </p>
                   <p className="text-sm text-gray-600">View your TripKey QR to verify bookings instantly</p>
                 </Link>
                 <div className="p-4 border-2 border-gray-300 rounded-lg bg-white">
-                  <p className="font-semibold text-gray-900 mb-1">🧭 Travel Status</p>
+                  <p className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.5 8.5l-3.5 7-3.5-7 7 3.5z" />
+                    </svg>
+                    Travel Status
+                  </p>
                   <p className="text-sm text-gray-600">{upcomingCount} upcoming bookings in your account</p>
                 </div>
               </div>
@@ -239,9 +261,31 @@ function TouristDashboardHome() {
                               ? 'bg-red-100 text-red-700'
                               : 'bg-amber-100 text-amber-700'
                           }`}>
-                            {booking.verification_status === 'approved' && '✓ Verified'}
-                            {booking.verification_status === 'rejected' && '✗ Rejected'}
-                            {booking.verification_status === 'pending' && '⏳ Pending Review'}
+                            {booking.verification_status === 'approved' && (
+                              <span className="inline-flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Verified
+                              </span>
+                            )}
+                            {booking.verification_status === 'rejected' && (
+                              <span className="inline-flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Rejected
+                              </span>
+                            )}
+                            {booking.verification_status === 'pending' && (
+                              <span className="inline-flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
+                                </svg>
+                                Pending Review
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>

@@ -24,34 +24,34 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="#"
+                  href="/#how-it-works"
                   className="hover:text-sky-400 transition-colors text-sm"
                 >
-                  Features
+                  How It Works
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/faqs"
                   className="hover:text-sky-400 transition-colors text-sm"
                 >
-                  Pricing
+                  FAQs
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/contact"
                   className="hover:text-sky-400 transition-colors text-sm"
                 >
-                  Security
+                  Contact
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/signup"
                   className="hover:text-sky-400 transition-colors text-sm"
                 >
-                  Roadmap
+                  Get Started
                 </Link>
               </li>
             </ul>
@@ -63,34 +63,34 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="#"
+                  href="/about"
                   className="hover:text-sky-400 transition-colors text-sm"
                 >
-                  About Us
+                  About
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
-                  className="hover:text-sky-400 transition-colors text-sm"
-                >
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="hover:text-sky-400 transition-colors text-sm"
-                >
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
+                  href="/contact"
                   className="hover:text-sky-400 transition-colors text-sm"
                 >
                   Contact
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/faqs"
+                  className="hover:text-sky-400 transition-colors text-sm"
+                >
+                  FAQs
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/privacy-policy"
+                  className="hover:text-sky-400 transition-colors text-sm"
+                >
+                  Privacy Policy
                 </Link>
               </li>
             </ul>
@@ -102,7 +102,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="#"
+                  href="/privacy-policy"
                   className="hover:text-sky-400 transition-colors text-sm"
                 >
                   Privacy Policy
@@ -110,7 +110,15 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/privacy-policy#data"
+                  className="hover:text-sky-400 transition-colors text-sm"
+                >
+                  Data Practices
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms"
                   className="hover:text-sky-400 transition-colors text-sm"
                 >
                   Terms of Service
@@ -118,18 +126,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/terms#acceptable-use"
                   className="hover:text-sky-400 transition-colors text-sm"
                 >
-                  Cookie Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="hover:text-sky-400 transition-colors text-sm"
-                >
-                  GDPR Compliance
+                  Acceptable Use
                 </Link>
               </li>
             </ul>
@@ -159,9 +159,14 @@ export default function Footer() {
 
           {/* Copyright */}
           <div className="text-center border-t border-gray-800 pt-8">
-            <p className="text-sm text-gray-400">
-              © {new Date().getFullYear()} TripKey. All rights reserved. • Built with
-              <span className="text-red-500 mx-1">❤</span>for travelers.
+            <p className="text-sm text-gray-400 flex items-center justify-center gap-2">
+              © {new Date().getFullYear()} TripKey. All rights reserved. Built with
+              <span className="inline-flex items-center justify-center text-red-500">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </span>
+              for travelers.
             </p>
           </div>
         </div>

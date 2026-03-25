@@ -225,14 +225,24 @@ function ProviderVerifyPageContent() {
                           disabled={verifying}
                           className="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition disabled:opacity-50"
                         >
-                          ✓ Approve
+                          <span className="inline-flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Approve
+                          </span>
                         </button>
                         <button
                           onClick={handleReject}
                           disabled={verifying}
                           className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition disabled:opacity-50"
                         >
-                          ✗ Reject
+                          <span className="inline-flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Reject
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -246,10 +256,22 @@ function ProviderVerifyPageContent() {
                           : 'bg-red-50 border border-red-200 text-red-700'
                       }`}
                     >
-                      <p className="font-semibold">
-                        {booking.verification_status === 'approved'
-                          ? '✓ Already Approved'
-                          : '✗ Already Rejected'}
+                      <p className="font-semibold inline-flex items-center gap-2">
+                        {booking.verification_status === 'approved' ? (
+                          <>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Already Approved
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Already Rejected
+                          </>
+                        )}
                       </p>
                     </div>
                   )}

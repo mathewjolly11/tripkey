@@ -334,7 +334,12 @@ export default function SignupPage() {
                 } disabled:opacity-70 disabled:cursor-not-allowed`}
               >
                 <div className="flex items-start gap-4">
-                  <div className="text-3xl">🧳</div>
+                  <div className="w-10 h-10 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 6a3 3 0 016 0v1h3a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h3V6z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6" />
+                    </svg>
+                  </div>
                   <div className="flex-1">
                     <p className="font-bold text-gray-900 text-lg mb-1">Traveler</p>
                     <p className="text-sm text-gray-600">
@@ -361,7 +366,12 @@ export default function SignupPage() {
                 } disabled:opacity-70 disabled:cursor-not-allowed`}
               >
                 <div className="flex items-start gap-4">
-                  <div className="text-3xl">🏢</div>
+                  <div className="w-10 h-10 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M6 21V5a2 2 0 012-2h8a2 2 0 012 2v16" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9h2m-2 4h2m4-4h2m-2 4h2" />
+                    </svg>
+                  </div>
                   <div className="flex-1">
                     <p className="font-bold text-gray-900 text-lg mb-1">Service Provider</p>
                     <p className="text-sm text-gray-600">
@@ -385,18 +395,29 @@ export default function SignupPage() {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+                    {providerType === 'transport' ? (
+                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M7 16l-1 4m0 0H5a1 1 0 01-1-1v-2a3 3 0 013-3h10a3 3 0 013 3v2a1 1 0 01-1 1h-1m-11 0a2 2 0 104 0m7 0a2 2 0 104 0M7 16h10M6 10h12l-1.5-4.5a2 2 0 00-1.9-1.5H9.4a2 2 0 00-1.9 1.5L6 10z" />
+                      </svg>
+                    ) : providerType === 'attraction' ? (
+                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9V7a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v2m0 4v2m0 4v1" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    )}
                   </div>
                   <select
                     value={providerType}
                     onChange={(e) => setProviderType(e.target.value)}
                     className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all duration-200 bg-gray-50 focus:bg-white appearance-none"
                   >
-                    <option value="hotel">🏨 Hotel</option>
-                    <option value="transport">🚕 Transport/Taxi</option>
-                    <option value="attraction">🎡 Attraction/Activity</option>
+                    <option value="hotel">Hotel</option>
+                    <option value="transport">Transport/Taxi</option>
+                    <option value="attraction">Attraction/Activity</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1,36 +1,64 @@
 export default function FeaturesSection() {
   const features = [
     {
-      icon: '🎫',
+      icon: (
+        <svg className="w-10 h-10 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 9V7a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v2m0 4v2m0 4v1" />
+        </svg>
+      ),
       title: 'Unified Travel Identity',
       description: 'One QR code for all your travel needs - hotels, transport, attractions, and more.',
     },
     {
-      icon: '🔐',
+      icon: (
+        <svg className="w-10 h-10 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="5" y="10" width="14" height="10" rx="2" ry="2" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 10V7a4 4 0 018 0v3" />
+        </svg>
+      ),
       title: 'Secure QR Verification',
       description:
         'Bank-level encryption ensures your data is protected at every step of verification.',
     },
     {
-      icon: '⚡',
+      icon: (
+        <svg className="w-10 h-10 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 3L4 14h7l-1 7 9-11h-7l1-7z" />
+        </svg>
+      ),
       title: 'Fast Entry at Services',
       description:
         'Skip long queues with instant scan-and-verify system at all partner locations.',
     },
     {
-      icon: '📱',
+      icon: (
+        <svg className="w-10 h-10 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <rect x="7" y="2" width="10" height="20" rx="2" ry="2" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11 18h2" />
+        </svg>
+      ),
       title: 'Simple Booking Management',
       description:
         'Easily manage all your bookings from a single intuitive dashboard.',
     },
     {
-      icon: '🌍',
+      icon: (
+        <svg className="w-10 h-10 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18" />
+        </svg>
+      ),
       title: 'Global Service Network',
       description:
         'Works seamlessly across 100+ partner hotels, transport, and attractions worldwide.',
     },
     {
-      icon: '📊',
+      icon: (
+        <svg className="w-10 h-10 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 19h16M6 16V8m6 8V5m6 11v-6" />
+        </svg>
+      ),
       title: 'Travel Analytics',
       description:
         'Track your spending, visits, and travel patterns with beautiful visualizations.',
@@ -38,7 +66,7 @@ export default function FeaturesSection() {
   ];
 
   return (
-    <section className="section-padding bg-gradient-sky-light">
+    <section id="features" className="section-padding bg-gradient-sky-light">
       <div className="container-max">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
@@ -56,7 +84,7 @@ export default function FeaturesSection() {
               className="card-base group animate-slide-up hover:scale-105 transform"
               style={{ animationDelay: `${index * 80}ms` }}
             >
-              <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
+              <div className="mb-4 group-hover:scale-110 transition-transform duration-300">
                 {feature.icon}
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">

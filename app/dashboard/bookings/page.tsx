@@ -99,9 +99,31 @@ function TouristBookingsPageContent() {
                           ? 'bg-red-100 text-red-700'
                           : 'bg-amber-100 text-amber-700'
                       }`}>
-                        {booking.verification_status === 'approved' && '✓ Approved'}
-                        {booking.verification_status === 'rejected' && '✗ Rejected'}
-                        {booking.verification_status === 'pending' && '⏳ Pending'}
+                        {booking.verification_status === 'approved' && (
+                          <span className="inline-flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Approved
+                          </span>
+                        )}
+                        {booking.verification_status === 'rejected' && (
+                          <span className="inline-flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Rejected
+                          </span>
+                        )}
+                        {booking.verification_status === 'pending' && (
+                          <span className="inline-flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
+                            </svg>
+                            Pending
+                          </span>
+                        )}
                       </span>
                     )}
                   </div>

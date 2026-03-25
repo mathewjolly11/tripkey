@@ -125,7 +125,9 @@ function ProviderDashboardContent() {
                 <p className="text-3xl font-bold text-gray-900">{stats.totalScans}</p>
               </div>
               <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">📊</span>
+                <svg className="w-6 h-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 19h16M6 16V8m6 8V5m6 11v-6" />
+                </svg>
               </div>
             </div>
           </div>
@@ -137,7 +139,10 @@ function ProviderDashboardContent() {
                 <p className="text-3xl font-bold text-sky-600">{stats.todayScans}</p>
               </div>
               <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">📷</span>
+                <svg className="w-6 h-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h4l2-3h6l2 3h4v12H3z" />
+                  <circle cx="12" cy="13" r="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
             </div>
           </div>
@@ -149,7 +154,10 @@ function ProviderDashboardContent() {
                 <p className="text-sm font-semibold text-gray-900">{stats.lastScanAt}</p>
               </div>
               <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🕒</span>
+                <svg className="w-6 h-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <circle cx="12" cy="12" r="9" strokeLinecap="round" strokeLinejoin="round" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
+                </svg>
               </div>
             </div>
           </div>
