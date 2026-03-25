@@ -61,7 +61,6 @@ function ProviderVerifyPageContent() {
             .from('bookings')
             .select('*')
             .eq('user_id', token)
-            .not('ticket_url', 'is', null)
             .order('booking_date', { ascending: false })
             .limit(1),
         ]);
@@ -192,6 +191,28 @@ function ProviderVerifyPageContent() {
               {hasValidBooking && (
                 <>
                   <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="rounded-lg border border-sky-100 p-4 bg-white">
+                        <p className="text-xs text-gray-500 mb-1">Title</p>
+                        <p className="font-semibold text-gray-900">{booking?.title || '—'}</p>
+                      </div>
+                      <div className="rounded-lg border border-sky-100 p-4 bg-white">
+                        <p className="text-xs text-gray-500 mb-1">Type</p>
+                        <p className="font-semibold text-gray-900 capitalize">{booking?.type || '—'}</p>
+                      </div>
+                      <div className="rounded-lg border border-sky-100 p-4 bg-white">
+                        <p className="text-xs text-gray-500 mb-1">Booking Date</p>
+                        <p className="font-semibold text-gray-900">{booking?.booking_date ? new Date(booking.booking_date).toLocaleDateString() : '—'}</p>
+                      </div>
+                      <div className="rounded-lg border border-sky-100 p-4 bg-white">
+                        <p className="text-xs text-gray-500 mb-1">Reference</p>
+                        <p className="font-semibold text-gray-900 break-all">{booking?.booking_reference || '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-8">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Confirmation Image</h3>
                     {booking?.ticket_url ? (
                       <div className="rounded-lg border border-sky-200 bg-sky-50 p-4">
@@ -222,15 +243,16 @@ function ProviderVerifyPageContent() {
                         )}
                       </div>
                     ) : (
-                      <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-gray-600">
-                        No image provided
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-700">
+                        <p className="font-semibold">No image provided</p>
+                        <p className="text-sm mt-1">Tourist did not upload a confirmation image. You can verify using booking details above.</p>
                       </div>
                     )}
                   </div>
 
                   {!isAlreadyVerified && (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8">
-                      <p className="text-amber-800 font-semibold mb-4">Verify the booking image and take action:</p>
+                      <p className="text-amber-800 font-semibold mb-4">Verify the booking details and take action:</p>
                       <div className="flex flex-wrap gap-3">
                         <button
                           onClick={handleApprove}

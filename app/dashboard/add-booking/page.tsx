@@ -44,6 +44,18 @@ function AddBookingPageContent() {
       return;
     }
 
+    // Validate at least one identifier is provided
+    if (!bookingId.trim() && !bookingReference.trim()) {
+      await tripKeyAlert.error('Missing Identifier', 'Please provide either a Booking ID or Booking Reference number.');
+      return;
+    }
+
+    // Validate title
+    if (!title.trim()) {
+      await tripKeyAlert.error('Missing Title', 'Please provide a booking title.');
+      return;
+    }
+
     // Check file size (warn if > 5MB) - image is now optional
     if (ticketFile && ticketFile.size > 5 * 1024 * 1024) {
       const result = await tripKeyAlert.confirm(
@@ -72,9 +84,9 @@ function AddBookingPageContent() {
       const result = await createBooking({
         userId: user.id,
         type,
-        title: title.trim() || `${type.charAt(0).toUpperCase() + type.slice(1)} Booking`,
+        title: title.trim(),
         bookingDate: bookingDate || new Date().toISOString().split('T')[0],
-        bookingReference: bookingReference.trim() || bookingId.trim() || undefined,
+        bookingReference: bookingReference.trim() || bookingId.trim(),
         ticketFile: fileToUpload,
       });
 
@@ -114,7 +126,7 @@ function AddBookingPageContent() {
       <main className="container-max py-10">
         <div className="max-w-xl card-base">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Create New Booking</h2>
-          <p className="text-gray-600 mb-2">Add a new booking. Upload an image to help providers verify your booking.</p>
+          <p className="text-gray-600 mb-2">Create a new booking with your travel details. Image upload is optional but helps with verification.</p>
           <p className="text-sm text-gray-500 mb-6"><span className="text-red-500">*</span> Required fields</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,7 +149,7 @@ function AddBookingPageContent() {
 
             <div>
               <label htmlFor="bookingId" className="block text-sm font-semibold text-gray-900 mb-2">
-                Booking ID <span className="text-gray-400 font-normal">(Optional)</span>
+                Booking ID / Reference <span className="text-red-500">*</span>
               </label>
               <input
                 id="bookingId"
@@ -147,12 +159,12 @@ function AddBookingPageContent() {
                 onChange={(e) => setBookingId(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
               />
-              <p className="text-xs text-gray-500 mt-1">A unique identifier or reference number for this booking</p>
+              <p className="text-xs text-gray-500 mt-1">A unique identifier or reference number for this booking. Required.</p>
             </div>
 
             <div>
               <label htmlFor="title" className="block text-sm font-semibold text-gray-900 mb-2">
-                Booking Title <span className="text-gray-400 font-normal">(Optional)</span>
+                Booking Title <span className="text-red-500">*</span>
               </label>
               <input
                 id="title"
@@ -161,6 +173,7 @@ function AddBookingPageContent() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
+                required
               />
             </div>
 
