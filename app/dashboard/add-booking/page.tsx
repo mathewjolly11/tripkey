@@ -8,6 +8,7 @@ import { ProviderType } from '@/lib/supabase';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { createBooking } from '@/lib/bookings';
 import { tripKeyAlert } from '@/lib/alerts';
+import { compressImage, formatFileSize } from '@/lib/file-compression';
 
 function AddBookingPageContent() {
   const { user, signOut } = useAuth();
@@ -18,6 +19,7 @@ function AddBookingPageContent() {
   const [bookingDate, setBookingDate] = useState('');
   const [bookingReference, setBookingReference] = useState('');
   const [ticketFile, setTicketFile] = useState<File | null>(null);
+  const [compressedFileSize, setCompressedFileSize] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
@@ -50,22 +52,31 @@ function AddBookingPageContent() {
     if (ticketFile.size > 5 * 1024 * 1024) {
       const result = await tripKeyAlert.confirm(
         'Large File',
-        `This file is ${(ticketFile.size / 1024 / 1024).toFixed(1)}MB. Upload may take longer. Continue?`
+        `This file is ${formatFileSize(ticketFile.size)}. Upload may take longer. Continue?`
       );
       if (!result.isConfirmed) return;
     }
 
     setSubmitting(true);
-    tripKeyAlert.loading('Uploading image and creating booking...');
+    tripKeyAlert.loading('Compressing image...');
 
     try {
+      // Compress image before upload
+      let fileToUpload = ticketFile;
+      if (ticketFile.type.startsWith('image/')) {
+        fileToUpload = await compressImage(ticketFile);
+        setCompressedFileSize(fileToUpload.size);
+      }
+
+      tripKeyAlert.loading('Uploading image and creating booking...');
+
       const result = await createBooking({
         userId: user.id,
         type,
         title: title.trim() || 'Untitled Booking',
         bookingDate: bookingDate || new Date().toISOString().split('T')[0],
         bookingReference: bookingReference.trim() || undefined,
-        ticketFile,
+        ticketFile: fileToUpload,
       });
 
       tripKeyAlert.close();
@@ -175,15 +186,21 @@ function AddBookingPageContent() {
                 id="ticket"
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => setTicketFile(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  setTicketFile(e.target.files?.[0] || null);
+                  setCompressedFileSize(null);
+                }}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
                 required
               />
               <p className="text-xs text-gray-500 mt-1">Upload confirmation screenshot/image from the service provider (PDF, PNG, JPG)</p>
               {ticketFile && (
-                <p className="text-xs text-sky-600 mt-2">
-                  Selected: {ticketFile.name} ({(ticketFile.size / 1024).toFixed(1)} KB)
-                </p>
+                <div className="text-xs text-sky-600 mt-2">
+                  <p>Original: {ticketFile.name} ({formatFileSize(ticketFile.size)})</p>
+                  {compressedFileSize && compressedFileSize < ticketFile.size && (
+                    <p className="text-green-600">Compressed: {formatFileSize(compressedFileSize)} (saves {formatFileSize(ticketFile.size - compressedFileSize)})</p>
+                  )}
+                </div>
               )}
             </div>
 
