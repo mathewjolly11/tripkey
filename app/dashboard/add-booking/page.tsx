@@ -60,19 +60,22 @@ function AddBookingPageContent() {
       });
 
       tripKeyAlert.close();
+      setSubmitting(false);
 
       if (result.warning) {
-        await tripKeyAlert.warning('Warning', result.warning);
+        tripKeyAlert.warning('Warning', result.warning);
       }
 
-      await tripKeyAlert.success('Booking Created!', `Your ${type} booking "${title}" has been successfully created.`);
+      tripKeyAlert.success('Booking Created!', `Your ${type} booking "${title}" has been successfully created.`);
+
+      // Navigate after a brief delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
       router.push('/dashboard/bookings');
     } catch (err) {
       tripKeyAlert.close();
       const errorMessage = (err as Error).message;
       setError(errorMessage);
       await tripKeyAlert.error('Error Creating Booking', errorMessage);
-    } finally {
       setSubmitting(false);
     }
   };
