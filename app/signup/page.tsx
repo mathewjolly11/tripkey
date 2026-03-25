@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
@@ -22,10 +22,29 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [role, setRole] = useState('tourist');
   const [providerType, setProviderType] = useState('hotel');
+  const [roleLocked, setRoleLocked] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUp, signInWithGoogle, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    const providerTypeParam = searchParams.get('provider_type');
+
+    if (roleParam === 'provider' || roleParam === 'tourist' || roleParam === 'admin') {
+      setRole(roleParam);
+      setRoleLocked(true);
+      if (roleParam === 'provider') {
+        setStep(2);
+      }
+    }
+
+    if (providerTypeParam === 'hotel' || providerTypeParam === 'transport' || providerTypeParam === 'attraction') {
+      setProviderType(providerTypeParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -64,12 +83,14 @@ export default function SignupPage() {
 
     tripKeyAlert.loading('Creating your account...');
 
+    const resolvedRole = role;
+
     const { error } = await signUp(
       email,
       password,
       name,
-      role as 'tourist' | 'provider' | 'admin',
-      role === 'provider' ? (providerType as 'hotel' | 'transport' | 'attraction') : undefined
+      resolvedRole as 'tourist' | 'provider' | 'admin',
+      resolvedRole === 'provider' ? (providerType as 'hotel' | 'transport' | 'attraction') : undefined
     );
 
     if (error) {
@@ -79,11 +100,25 @@ export default function SignupPage() {
       await tripKeyAlert.error('Sign Up Failed', error);
     } else {
       tripKeyAlert.close();
-      const roleText = role === 'tourist' ? 'Traveler' : role === 'provider' ? 'Service Provider' : 'Administrator';
+      const roleText = resolvedRole === 'tourist' ? 'Traveler' : resolvedRole === 'provider' ? 'Service Provider' : 'Administrator';
       await tripKeyAlert.success('Account Created!', `Welcome to TripKey, ${name}! You're now registered as a ${roleText}.`);
       setLoading(false);
-      router.replace(roleRedirect(role, role === 'provider' ? 'pending' : null));
+      fetch('/api/notifications/account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'registration',
+          email,
+          name,
+          roleLabel: roleText,
+        }),
+      }).catch(() => undefined);
+      tripKeyAlert.loading('Redirecting...');
+      router.replace(roleRedirect(resolvedRole, resolvedRole === 'provider' ? 'pending' : null));
       router.refresh();
+      setTimeout(() => {
+        tripKeyAlert.close();
+      }, 800);
     }
   };
 
@@ -281,15 +316,22 @@ export default function SignupPage() {
                 How will you use TripKey?
               </label>
 
+              {roleLocked && (
+                <p className="text-xs text-gray-500">
+                  Role was selected from the signup link. Continue with the chosen role.
+                </p>
+              )}
+
               {/* Tourist Option */}
               <button
                 type="button"
                 onClick={() => setRole('tourist')}
+                disabled={roleLocked}
                 className={`w-full p-5 border-2 rounded-xl transition-all duration-200 text-left ${
                   role === 'tourist'
                     ? 'border-sky-500 bg-sky-50 shadow-lg scale-[1.02]'
                     : 'border-gray-200 hover:border-sky-300 hover:bg-gray-50'
-                }`}
+                } disabled:opacity-70 disabled:cursor-not-allowed`}
               >
                 <div className="flex items-start gap-4">
                   <div className="text-3xl">🧳</div>
@@ -311,11 +353,12 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => setRole('provider')}
+                disabled={roleLocked}
                 className={`w-full p-5 border-2 rounded-xl transition-all duration-200 text-left ${
                   role === 'provider'
                     ? 'border-sky-500 bg-sky-50 shadow-lg scale-[1.02]'
                     : 'border-gray-200 hover:border-sky-300 hover:bg-gray-50'
-                }`}
+                } disabled:opacity-70 disabled:cursor-not-allowed`}
               >
                 <div className="flex items-start gap-4">
                   <div className="text-3xl">🏢</div>

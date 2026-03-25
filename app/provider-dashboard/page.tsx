@@ -55,9 +55,20 @@ function ProviderDashboardContent() {
   const handleLogout = async () => {
     const result = await tripKeyAlert.signOutConfirm();
     if (result.isConfirmed) {
-      await signOut();
-      router.push('/');
-      await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
+      tripKeyAlert.loading('Signing out...');
+      try {
+        await Promise.race([
+          signOut(),
+          new Promise((resolve) => setTimeout(resolve, 1200)),
+        ]);
+
+        router.replace('/login?loggedOut=1');
+        router.refresh();
+      } catch (error) {
+        await tripKeyAlert.error('Sign Out Failed', (error as Error).message || 'Could not sign out.');
+      } finally {
+        tripKeyAlert.close();
+      }
     }
   };
 

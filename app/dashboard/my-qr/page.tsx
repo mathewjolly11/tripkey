@@ -31,8 +31,8 @@ function MyQrPageContent() {
     const result = await tripKeyAlert.signOutConfirm();
     if (result.isConfirmed) {
       await signOut();
-      router.push('/');
-      await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
+      router.replace('/login?loggedOut=1');
+      router.refresh();
     }
   };
 

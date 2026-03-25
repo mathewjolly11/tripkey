@@ -9,8 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { tripKeyAlert } from '@/lib/alerts';
 
 function roleRedirect(role?: string, verificationStatus?: string | null) {
-  if (verificationStatus && verificationStatus !== 'approved') return '/provider-onboarding';
-  if (role === 'provider') return '/provider-dashboard';
+  if (role === 'provider' || verificationStatus) return '/provider-onboarding';
   if (role === 'admin') return '/admin';
   return '/dashboard';
 }
@@ -27,8 +26,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
+      tripKeyAlert.loading('Redirecting...');
       router.replace(roleRedirect(user?.role, user?.verification_status));
       router.refresh();
+      setTimeout(() => {
+        tripKeyAlert.close();
+      }, 800);
     }
   }, [authLoading, isAuthenticated, router, user?.role, user?.verification_status]);
 
@@ -76,8 +79,12 @@ export default function LoginPage() {
       tripKeyAlert.close();
       await tripKeyAlert.success('Welcome!', `Signed in successfully as ${user.email}`);
       setSubmitting(false);
+      tripKeyAlert.loading('Redirecting...');
       router.replace(roleRedirect(profile?.role, profile?.verification_status || null));
       router.refresh();
+      setTimeout(() => {
+        tripKeyAlert.close();
+      }, 800);
     }
   };
 

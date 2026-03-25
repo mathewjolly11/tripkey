@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function CTASection() {
   return (
     <section className="section-padding bg-gradient-to-br from-sky-500 via-sky-400 to-sky-600 relative overflow-hidden">
@@ -16,12 +18,18 @@ export default function CTASection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-white text-sky-500 font-bold rounded-lg hover:bg-sky-50 transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl text-lg">
+            <Link
+              href="/signup?role=provider"
+              className="px-8 py-4 bg-white text-sky-500 font-bold rounded-lg hover:bg-sky-50 transition-all duration-300 active:scale-95 shadow-lg hover:shadow-xl text-lg text-center"
+            >
               Create Account
-            </button>
-            <button className="px-8 py-4 bg-transparent text-white font-bold rounded-lg border-2 border-white hover:bg-white/10 transition-all duration-300 active:scale-95 text-lg">
+            </Link>
+            <Link
+              href="/login"
+              className="px-8 py-4 bg-transparent text-white font-bold rounded-lg border-2 border-white hover:bg-white/10 transition-all duration-300 active:scale-95 text-lg text-center"
+            >
               Login to Existing Account
-            </button>
+            </Link>
           </div>
 
           {/* Trust Badges */}

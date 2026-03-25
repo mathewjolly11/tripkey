@@ -24,7 +24,7 @@ export default function AdminProvidersPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'pending'>('all');
   const [page, setPage] = useState(1);
 
-  const approvedCount = users.filter((user) => user.role === 'provider' || user.verification_status === 'approved').length;
+  const approvedCount = users.filter((user) => user.verification_status === 'approved').length;
   const pendingCount = users.filter((user) => user.verification_status === 'pending').length;
 
   const loadProviders = async () => {
@@ -52,7 +52,7 @@ export default function AdminProvidersPage() {
         (user.email || '').toLowerCase().includes(query) ||
         user.id.toLowerCase().includes(query);
 
-      const isApproved = user.role === 'provider' || user.verification_status === 'approved';
+      const isApproved = user.verification_status === 'approved';
       const isPending = user.verification_status === 'pending';
       const matchesStatus =
         statusFilter === 'all' || (statusFilter === 'approved' && isApproved) || (statusFilter === 'pending' && isPending);
@@ -128,6 +128,18 @@ export default function AdminProvidersPage() {
     }
 
     await tripKeyAlert.success('Provider Approved', `User approved as ${providerType} provider.`);
+    if (selectedUser?.email) {
+      fetch('/api/notifications/account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'provider_approved',
+          email: selectedUser.email,
+          name: selectedUser.name || '',
+          providerType,
+        }),
+      }).catch(() => undefined);
+    }
     await loadProviders();
   };
 
@@ -219,7 +231,7 @@ export default function AdminProvidersPage() {
             )}
             {!loading &&
               paginatedUsers.map((user) => {
-                const isApproved = user.role === 'provider' || user.verification_status === 'approved';
+                const isApproved = user.verification_status === 'approved';
                 const isPending = user.verification_status === 'pending';
                 const hasDocument = Boolean(user.verification_document_url);
 
@@ -265,16 +277,29 @@ export default function AdminProvidersPage() {
                         </span>
                       ) : (
                         <div className="flex flex-wrap gap-2">
-                          {(['hotel', 'transport', 'attraction'] as ProviderType[]).map((type) => (
-                            <button
-                              key={type}
-                              onClick={() => handleApprove(user.id, type)}
-                              disabled={busyUserId === user.id || !hasDocument}
-                              className="rounded-lg border border-sky-200 px-2.5 py-1.5 text-xs font-semibold capitalize text-sky-700 transition hover:bg-sky-50 disabled:opacity-60"
-                            >
-                              {busyUserId === user.id ? 'Saving...' : `Approve ${type}`}
-                            </button>
-                          ))}
+                          <button
+                            onClick={() => handleApprove(user.id, (user.provider_type || 'hotel') as ProviderType)}
+                            disabled={busyUserId === user.id || !hasDocument || !user.provider_type}
+                            className="rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-semibold capitalize text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-60"
+                            title={
+                              !hasDocument
+                                ? 'Upload document required'
+                                : !user.provider_type
+                                ? 'Provider type missing'
+                                : ''
+                            }
+                          >
+                            {busyUserId === user.id
+                              ? 'Saving...'
+                              : user.provider_type
+                              ? `Approve ${user.provider_type}`
+                              : 'Approve'}
+                          </button>
+                          {(!hasDocument || !user.provider_type) && (
+                            <span className="text-xs text-slate-400">
+                              {!hasDocument ? 'Awaiting document' : 'Missing provider type'}
+                            </span>
+                          )}
                         </div>
                       )}
                     </td>

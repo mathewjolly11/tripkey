@@ -38,7 +38,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         new Promise((resolve) => setTimeout(resolve, 1200)),
       ]);
 
-      router.replace('/');
+      router.replace('/login?loggedOut=1');
+      router.refresh();
     } catch (error) {
       await tripKeyAlert.error('Sign Out Failed', (error as Error).message || 'Could not sign out.');
     } finally {

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Hero() {
   return (
     <section
@@ -25,8 +27,8 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="btn-primary">Get Started</button>
-              <button className="btn-secondary">Learn More</button>
+              <Link href="/signup?role=provider" className="btn-primary text-center">Get Started</Link>
+              <Link href="#how-it-works" className="btn-secondary text-center">Learn More</Link>
             </div>
 
             {/* Trust Indicators */}

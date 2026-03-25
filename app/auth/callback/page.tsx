@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
+import { tripKeyAlert } from '@/lib/alerts';
 
 const OAUTH_SIGNUP_CONTEXT_KEY = 'tripkey_oauth_signup_context';
 
@@ -39,8 +40,7 @@ function clearOAuthSignupContext() {
 }
 
 function getRoleRedirect(role?: string, verificationStatus?: string | null) {
-  if (verificationStatus && verificationStatus !== 'approved') return '/provider-onboarding';
-  if (role === 'provider') return '/provider-dashboard';
+  if (role === 'provider' || verificationStatus) return '/provider-onboarding';
   if (role === 'admin') return '/admin';
   return '/dashboard';
 }
@@ -90,10 +90,10 @@ export default function AuthCallbackPage() {
             'hotel'
           : existingProfile?.provider_type || session.user.user_metadata?.provider_type || 'hotel';
       const isProviderSignup = mode === 'signup' && requestedRole === 'provider';
-      const role = (isProviderSignup ? 'tourist' : requestedRole) as 'tourist' | 'provider' | 'admin';
+      const role = requestedRole as 'tourist' | 'provider' | 'admin';
       const verificationStatus = isProviderSignup
         ? 'pending'
-        : existingProfile?.verification_status || null;
+        : existingProfile?.verification_status || 'approved';
       const name =
         existingProfile?.name ||
         session.user.user_metadata?.full_name ||
@@ -108,7 +108,7 @@ export default function AuthCallbackPage() {
           email: session.user.email,
           name,
           role,
-          provider_type: requestedRole === 'provider' ? providerType : null,
+          provider_type: role === 'provider' ? providerType : null,
           verification_status: verificationStatus,
           created_at: new Date().toISOString(),
         },
@@ -120,8 +120,30 @@ export default function AuthCallbackPage() {
       }
 
       clearOAuthSignupContext();
+      if (mode === 'signup' && session.user.email) {
+        const roleLabel = requestedRole === 'tourist'
+          ? 'Traveler'
+          : requestedRole === 'provider'
+          ? 'Service Provider'
+          : 'Administrator';
+
+        fetch('/api/notifications/account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'registration',
+            email: session.user.email,
+            name,
+            roleLabel,
+          }),
+        }).catch(() => undefined);
+      }
+      tripKeyAlert.loading('Loading your dashboard...');
       router.replace(getRoleRedirect(requestedRole, verificationStatus));
       router.refresh();
+      setTimeout(() => {
+        tripKeyAlert.close();
+      }, 1200);
     };
 
     handleCallback();
@@ -131,7 +153,7 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-sky-100 flex items-center justify-center">
       <div className="text-center">
         <div className="w-12 h-12 border-4 border-sky-200 border-t-sky-500 rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-600">Completing your sign in...</p>
+        <p className="text-gray-600">Loading your dashboard...</p>
       </div>
     </div>
   );

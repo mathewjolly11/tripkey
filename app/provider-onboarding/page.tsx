@@ -45,7 +45,7 @@ export default function ProviderOnboardingPage() {
         setVerificationStatus(profile.verification_status);
       }
 
-      if (profile?.role === 'provider' || profile?.verification_status === 'approved') {
+      if (profile?.verification_status === 'approved') {
         router.replace('/provider-dashboard');
         return;
       }
@@ -151,7 +151,7 @@ export default function ProviderOnboardingPage() {
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
-        role: 'tourist',
+        role: 'provider',
         verification_document_url: documentUrl,
         verification_status: 'pending',
         provider_type: providerType,
@@ -267,32 +267,16 @@ export default function ProviderOnboardingPage() {
             </p>
           </div>
 
-          {/* Provider Type Selection */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700">
-              What type of service do you provide?
+              Service type selected during signup
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <select
-                value={providerType}
-                onChange={(e) => setProviderType(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 focus:outline-none transition-all duration-200 bg-gray-50 focus:bg-white appearance-none"
-              >
-                <option value="hotel">🏨 Hotel</option>
-                <option value="transport">🚕 Transport/Taxi</option>
-                <option value="attraction">🎡 Attraction/Activity</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+            <div className="rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3.5 text-sm font-semibold text-gray-800 capitalize">
+              {providerType || 'Not specified'}
             </div>
+            <p className="text-xs text-gray-500">
+              Contact support if you need to change this later.
+            </p>
           </div>
 
           {/* Document Upload */}

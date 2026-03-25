@@ -32,7 +32,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid or expired session.' }, { status: 401 });
   }
 
-  const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
+  const userId = user.id;
+
+  const { error: bookingsError } = await adminClient
+    .from('bookings')
+    .delete()
+    .eq('user_id', userId);
+
+  if (bookingsError) {
+    return NextResponse.json({ error: bookingsError.message }, { status: 500 });
+  }
+
+  const { error: scansError } = await adminClient
+    .from('scans')
+    .delete()
+    .or(`provider_id.eq.${userId},tourist_id.eq.${userId}`);
+
+  if (scansError) {
+    return NextResponse.json({ error: scansError.message }, { status: 500 });
+  }
+
+  const { error: profileError } = await adminClient
+    .from('profiles')
+    .delete()
+    .eq('id', userId);
+
+  if (profileError) {
+    return NextResponse.json({ error: profileError.message }, { status: 500 });
+  }
+
+  const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
 
   if (deleteError) {
     return NextResponse.json({ error: deleteError.message }, { status: 500 });

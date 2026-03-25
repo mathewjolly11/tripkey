@@ -104,19 +104,21 @@ function TouristDashboardHome() {
     setAccountActionLoading(true);
     tripKeyAlert.loading('Deleting account...');
 
-    const { error } = await deleteAccount();
+    try {
+      const { error } = await deleteAccount();
 
-    tripKeyAlert.close();
-    setAccountActionLoading(false);
+      if (error) {
+        await tripKeyAlert.error('Delete Failed', error);
+        return;
+      }
 
-    if (error) {
-      await tripKeyAlert.error('Delete Failed', error);
-      return;
+      await tripKeyAlert.success('Account Deleted', 'Your account has been deleted successfully.');
+      router.replace('/');
+      router.refresh();
+    } finally {
+      tripKeyAlert.close();
+      setAccountActionLoading(false);
     }
-
-    await tripKeyAlert.success('Account Deleted', 'Your account has been deleted successfully.');
-    router.replace('/');
-    router.refresh();
   };
 
   const upcomingCount = recentBookings.filter((booking) => booking.status !== 'completed').length;

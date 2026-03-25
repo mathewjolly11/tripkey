@@ -50,7 +50,7 @@ export async function getProviderQueue(): Promise<AdminResult<User[]>> {
   const { data, error } = await supabase
     .from('profiles')
     .select('id, email, name, role, provider_type, verification_document_url, verification_status, created_at')
-    .or('role.eq.provider,verification_status.not.is.null,provider_type.not.is.null')
+    .or('role.eq.provider,verification_status.eq.pending')
     .order('created_at', { ascending: false });
 
   return {

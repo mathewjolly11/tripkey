@@ -82,14 +82,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const metadataRole = metadata.role as UserRole | undefined;
     const metadataProviderType = metadata.provider_type as ProviderType | undefined;
 
-    const isProviderPending =
-      fallbackRole === 'provider' && existingProfile?.verification_status !== 'approved';
     const isSignupPromotion = fallbackRole === 'admin';
-    const role = isProviderPending
-      ? existingProfile?.role || 'tourist'
-      : isSignupPromotion
+    const role = isSignupPromotion
       ? fallbackRole
       : existingProfile?.role || metadataRole || fallbackRole;
+    const desiredVerificationStatus =
+      existingProfile?.verification_status || (role === 'provider' ? 'pending' : 'approved');
     const provider_type =
       role === 'provider'
         ? (isSignupPromotion ? fallbackProviderType : undefined) ||
@@ -111,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name,
       role,
       provider_type,
-      verification_status: existingProfile?.verification_status || (isProviderPending ? 'pending' : null),
+      verification_status: desiredVerificationStatus,
       created_at: new Date().toISOString(),
     };
 
@@ -291,6 +289,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name,
         role,
         provider_type: role === 'provider' ? (providerType || 'hotel') : null,
+        verification_status: role === 'provider' ? 'pending' : 'approved',
         created_at: new Date().toISOString(),
       }, {
         onConflict: 'id'
@@ -375,25 +374,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: 'No active session found.' };
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       const response = await fetch('/api/account/delete', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         return { error: payload?.error || 'Failed to delete account.' };
       }
 
-      await supabase.auth.signOut();
+      // Auth user is already deleted; clear local session without server call.
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } catch {
+        // Ignore local sign-out failures.
+      }
+
       setSession(null);
       setUser(null);
       clearOAuthSignupContext();
 
       return { error: null };
     } catch (error) {
+      if ((error as Error).name === 'AbortError') {
+        return { error: 'Delete request timed out. Please try again.' };
+      }
       return { error: (error as Error).message };
     }
   };
