@@ -15,6 +15,7 @@ function AddBookingPageContent() {
   const router = useRouter();
 
   const [type, setType] = useState<ProviderType>('hotel');
+  const [bookingId, setBookingId] = useState('');
   const [title, setTitle] = useState('');
   const [bookingDate, setBookingDate] = useState('');
   const [bookingReference, setBookingReference] = useState('');
@@ -43,13 +44,8 @@ function AddBookingPageContent() {
       return;
     }
 
-    if (!ticketFile) {
-      await tripKeyAlert.error('Missing Image', 'Please upload a booking confirmation image.');
-      return;
-    }
-
-    // Check file size (warn if > 5MB)
-    if (ticketFile.size > 5 * 1024 * 1024) {
+    // Check file size (warn if > 5MB) - image is now optional
+    if (ticketFile && ticketFile.size > 5 * 1024 * 1024) {
       const result = await tripKeyAlert.confirm(
         'Large File',
         `This file is ${formatFileSize(ticketFile.size)}. Upload may take longer. Continue?`
@@ -58,24 +54,27 @@ function AddBookingPageContent() {
     }
 
     setSubmitting(true);
-    tripKeyAlert.loading('Compressing image...');
+    let fileToUpload = ticketFile;
 
     try {
-      // Compress image before upload
-      let fileToUpload = ticketFile;
-      if (ticketFile.type.startsWith('image/')) {
-        fileToUpload = await compressImage(ticketFile);
-        setCompressedFileSize(fileToUpload.size);
+      if (ticketFile) {
+        tripKeyAlert.loading('Compressing image...');
+        // Compress image before upload
+        if (ticketFile.type.startsWith('image/')) {
+          fileToUpload = await compressImage(ticketFile);
+          setCompressedFileSize(fileToUpload.size);
+        }
+        tripKeyAlert.loading('Uploading image and creating booking...');
+      } else {
+        tripKeyAlert.loading('Creating booking...');
       }
-
-      tripKeyAlert.loading('Uploading image and creating booking...');
 
       const result = await createBooking({
         userId: user.id,
         type,
-        title: title.trim() || 'Untitled Booking',
+        title: title.trim() || `${type.charAt(0).toUpperCase() + type.slice(1)} Booking`,
         bookingDate: bookingDate || new Date().toISOString().split('T')[0],
-        bookingReference: bookingReference.trim() || undefined,
+        bookingReference: bookingReference.trim() || bookingId.trim() || undefined,
         ticketFile: fileToUpload,
       });
 
@@ -86,7 +85,7 @@ function AddBookingPageContent() {
         tripKeyAlert.warning('Warning', result.warning);
       }
 
-      tripKeyAlert.success('Booking Created!', `Your ${type} booking "${title}" has been successfully created.`);
+      tripKeyAlert.success('Booking Created!', `Your ${type} booking has been successfully created.`);
 
       // Navigate after a brief delay
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -115,7 +114,7 @@ function AddBookingPageContent() {
       <main className="container-max py-10">
         <div className="max-w-xl card-base">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Create New Booking</h2>
-          <p className="text-gray-600 mb-2">Upload a booking confirmation image. Other details are optional.</p>
+          <p className="text-gray-600 mb-2">Add a new booking. Upload an image to help providers verify your booking.</p>
           <p className="text-sm text-gray-500 mb-6"><span className="text-red-500">*</span> Required fields</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -134,6 +133,21 @@ function AddBookingPageContent() {
                 <option value="transport">Transport</option>
                 <option value="attraction">Attraction</option>
               </select>
+            </div>
+
+            <div>
+              <label htmlFor="bookingId" className="block text-sm font-semibold text-gray-900 mb-2">
+                Booking ID <span className="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                id="bookingId"
+                type="text"
+                placeholder="e.g., BKG-12345, #ABC123"
+                value={bookingId}
+                onChange={(e) => setBookingId(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
+              />
+              <p className="text-xs text-gray-500 mt-1">A unique identifier or reference number for this booking</p>
             </div>
 
             <div>
@@ -180,7 +194,7 @@ function AddBookingPageContent() {
 
             <div>
               <label htmlFor="ticket" className="block text-sm font-semibold text-gray-900 mb-2">
-                Booking Image <span className="text-red-500">*</span>
+                Booking Image <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <input
                 id="ticket"
@@ -191,7 +205,6 @@ function AddBookingPageContent() {
                   setCompressedFileSize(null);
                 }}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-sky-500 focus:outline-none"
-                required
               />
               <p className="text-xs text-gray-500 mt-1">Upload confirmation screenshot/image from the service provider (PDF, PNG, JPG)</p>
               {ticketFile && (
