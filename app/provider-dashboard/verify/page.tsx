@@ -72,8 +72,11 @@ function ProviderVerifyPageContent() {
         setTouristProfile(tourist || null);
         setAllBookings(bookings || []);
 
-        // Auto-select first booking
-        const firstBooking = bookings && bookings.length > 0 ? bookings[0] : null;
+        // Filter bookings by provider type
+        const matchingBookings = (bookings || []).filter(b => b.type === user?.provider_type);
+
+        // Auto-select first matching booking
+        const firstBooking = matchingBookings.length > 0 ? matchingBookings[0] : null;
         setSelectedBooking(firstBooking || null);
 
         // Record the scan in the database
@@ -176,7 +179,7 @@ function ProviderVerifyPageContent() {
           {!loading && !error && (
             <>
               <div className={`mb-6 rounded-lg px-4 py-3 ${hasValidBooking ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-yellow-50 border border-yellow-200 text-yellow-700'}`}>
-                {hasValidBooking ? 'Status: VALID BOOKING' : 'No valid booking found for this provider.'}
+                {hasValidBooking ? `Status: VALID ${user?.provider_type?.toUpperCase()} BOOKING` : `No ${user?.provider_type?.toUpperCase()} bookings found for this person.`}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -192,39 +195,53 @@ function ProviderVerifyPageContent() {
 
               {allBookings.length > 0 && (
                 <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Booking to Verify ({allBookings.length})</h3>
-                  <div className="grid grid-cols-1 gap-2">
-                    {allBookings.map((booking) => (
-                      <button
-                        key={booking.id}
-                        onClick={() => setSelectedBooking(booking)}
-                        className={`p-4 rounded-lg border-2 text-left transition ${
-                          selectedBooking?.id === booking.id
-                            ? 'border-sky-500 bg-sky-50'
-                            : 'border-gray-200 bg-white hover:border-sky-300'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-gray-900">{booking.title}</p>
-                            <p className="text-sm text-gray-600 capitalize">{booking.type} • {new Date(booking.booking_date).toLocaleDateString()}</p>
-                            <p className="text-xs text-gray-500 mt-1">Ref: {booking.booking_reference}</p>
-                          </div>
-                          <div className="text-right">
-                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                              booking.verification_status === 'approved'
-                                ? 'bg-green-100 text-green-700'
-                                : booking.verification_status === 'rejected'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {booking.verification_status || 'pending'}
-                            </span>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                  {allBookings.filter(b => b.type === user?.provider_type).length > 0 ? (
+                    <>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Select {user?.provider_type?.toUpperCase()} Booking to Verify ({allBookings.filter(b => b.type === user?.provider_type).length})</h3>
+                      <div className="grid grid-cols-1 gap-2">
+                        {allBookings.filter(b => b.type === user?.provider_type).map((booking) => (
+                          <button
+                            key={booking.id}
+                            onClick={() => setSelectedBooking(booking)}
+                            className={`p-4 rounded-lg border-2 text-left transition ${
+                              selectedBooking?.id === booking.id
+                                ? 'border-sky-500 bg-sky-50'
+                                : 'border-gray-200 bg-white hover:border-sky-300'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold text-gray-900">{booking.title}</p>
+                                <p className="text-sm text-gray-600 capitalize">{booking.type} • {new Date(booking.booking_date).toLocaleDateString()}</p>
+                                <p className="text-xs text-gray-500 mt-1">Ref: {booking.booking_reference}</p>
+                              </div>
+                              <div className="text-right">
+                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                                  booking.verification_status === 'approved'
+                                    ? 'bg-green-100 text-green-700'
+                                    : booking.verification_status === 'rejected'
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {booking.verification_status || 'pending'}
+                                </span>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-amber-700">
+                      <p className="font-semibold text-lg mb-2">No {user?.provider_type?.toUpperCase()} Bookings Found</p>
+                      <p className="text-sm">This tourist does not have any {user?.provider_type} bookings to verify.</p>
+                      {allBookings.length > 0 && (
+                        <p className="text-xs mt-3 text-amber-600">
+                          They have {allBookings.length} other booking{allBookings.length > 1 ? 's' : ''} ({allBookings.map(b => b.type).join(', ')}), but you can only verify {user?.provider_type} bookings.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
