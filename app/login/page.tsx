@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { tripKeyAlert } from '@/lib/alerts';
 
-function roleRedirect(role?: string) {
+function roleRedirect(role?: string, verificationStatus?: string | null) {
+  if (verificationStatus && verificationStatus !== 'approved') return '/provider-onboarding';
   if (role === 'provider') return '/provider-dashboard';
   if (role === 'admin') return '/admin';
   return '/dashboard';
@@ -22,13 +23,22 @@ export default function LoginPage() {
   const [sendingReset, setSendingReset] = useState(false);
   const { signIn, signInWithGoogle, requestPasswordReset, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      router.replace(roleRedirect(user?.role));
+      router.replace(roleRedirect(user?.role, user?.verification_status));
       router.refresh();
     }
-  }, [authLoading, isAuthenticated, router, user?.role]);
+  }, [authLoading, isAuthenticated, router, user?.role, user?.verification_status]);
+
+  useEffect(() => {
+    const loggedOut = searchParams.get('loggedOut');
+    if (loggedOut === '1') {
+      tripKeyAlert.success('Logout Successful', 'You have been signed out.');
+      router.replace('/login');
+    }
+  }, [router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,14 +69,14 @@ export default function LoginPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, verification_status')
         .eq('id', user.id)
         .maybeSingle();
 
       tripKeyAlert.close();
       await tripKeyAlert.success('Welcome!', `Signed in successfully as ${user.email}`);
       setSubmitting(false);
-      router.replace(roleRedirect(profile?.role));
+      router.replace(roleRedirect(profile?.role, profile?.verification_status || null));
       router.refresh();
     }
   };

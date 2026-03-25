@@ -19,6 +19,8 @@ export interface User {
   name?: string;
   role: UserRole;
   provider_type?: ProviderType;
+  verification_document_url?: string | null;
+  verification_status?: 'pending' | 'approved' | 'rejected' | null;
   created_at: string;
 }
 

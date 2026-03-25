@@ -24,8 +24,8 @@ export default function AdminProvidersPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'pending'>('all');
   const [page, setPage] = useState(1);
 
-  const approvedCount = users.filter((user) => user.role === 'provider').length;
-  const pendingCount = users.filter((user) => user.role !== 'provider').length;
+  const approvedCount = users.filter((user) => user.role === 'provider' || user.verification_status === 'approved').length;
+  const pendingCount = users.filter((user) => user.verification_status === 'pending').length;
 
   const loadProviders = async () => {
     setLoading(true);
@@ -52,9 +52,10 @@ export default function AdminProvidersPage() {
         (user.email || '').toLowerCase().includes(query) ||
         user.id.toLowerCase().includes(query);
 
-      const isApproved = user.role === 'provider';
+      const isApproved = user.role === 'provider' || user.verification_status === 'approved';
+      const isPending = user.verification_status === 'pending';
       const matchesStatus =
-        statusFilter === 'all' || (statusFilter === 'approved' && isApproved) || (statusFilter === 'pending' && !isApproved);
+        statusFilter === 'all' || (statusFilter === 'approved' && isApproved) || (statusFilter === 'pending' && isPending);
 
       return matchesQuery && matchesStatus;
     });
@@ -70,10 +71,12 @@ export default function AdminProvidersPage() {
       email: user.email || '',
       role: user.role,
       providerType: user.provider_type || '',
+      verificationStatus: user.verification_status || '',
+      verificationDocument: user.verification_document_url || '',
       createdAt: user.created_at,
     }));
 
-    const headers = ['id', 'name', 'email', 'role', 'providerType', 'createdAt'];
+    const headers = ['id', 'name', 'email', 'role', 'providerType', 'verificationStatus', 'verificationDocument', 'createdAt'];
     const csv = [
       headers.join(','),
       ...rows.map((row) =>
@@ -194,27 +197,31 @@ export default function AdminProvidersPage() {
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Email</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Current Role</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Provider Type</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">Verification</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">Document</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-700">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading && (
               <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={5}>
+                <td className="px-4 py-4 text-slate-500" colSpan={7}>
                   Loading provider queue...
                 </td>
               </tr>
             )}
             {!loading && filteredUsers.length === 0 && (
               <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={5}>
+                <td className="px-4 py-4 text-slate-500" colSpan={7}>
                   No users found.
                 </td>
               </tr>
             )}
             {!loading &&
               paginatedUsers.map((user) => {
-                const isApproved = user.role === 'provider';
+                const isApproved = user.role === 'provider' || user.verification_status === 'approved';
+                const isPending = user.verification_status === 'pending';
+                const hasDocument = Boolean(user.verification_document_url);
 
                 return (
                   <tr key={user.id}>
@@ -223,13 +230,34 @@ export default function AdminProvidersPage() {
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-                          user.role === 'provider' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                          isApproved ? 'bg-emerald-100 text-emerald-700' : isPending ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
                         }`}
                       >
-                        {user.role}
+                        {isApproved ? 'approved' : isPending ? 'pending' : 'unverified'}
                       </span>
                     </td>
                     <td className="px-4 py-3 capitalize text-slate-700">{user.provider_type || '-'}</td>
+                    <td className="px-4 py-3">
+                      {user.verification_status ? (
+                        <span className="capitalize text-slate-700">{user.verification_status}</span>
+                      ) : (
+                        <span className="text-slate-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {hasDocument ? (
+                        <a
+                          href={user.verification_document_url || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sky-600 hover:text-sky-700 font-semibold"
+                        >
+                          View Document
+                        </a>
+                      ) : (
+                        <span className="text-slate-400">No document</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       {isApproved ? (
                         <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -241,7 +269,7 @@ export default function AdminProvidersPage() {
                             <button
                               key={type}
                               onClick={() => handleApprove(user.id, type)}
-                              disabled={busyUserId === user.id}
+                              disabled={busyUserId === user.id || !hasDocument}
                               className="rounded-lg border border-sky-200 px-2.5 py-1.5 text-xs font-semibold capitalize text-sky-700 transition hover:bg-sky-50 disabled:opacity-60"
                             >
                               {busyUserId === user.id ? 'Saving...' : `Approve ${type}`}

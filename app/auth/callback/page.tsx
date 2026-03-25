@@ -38,7 +38,8 @@ function clearOAuthSignupContext() {
   window.localStorage.removeItem(OAUTH_SIGNUP_CONTEXT_KEY);
 }
 
-function getRoleRedirect(role?: string) {
+function getRoleRedirect(role?: string, verificationStatus?: string | null) {
+  if (verificationStatus && verificationStatus !== 'approved') return '/provider-onboarding';
   if (role === 'provider') return '/provider-dashboard';
   if (role === 'admin') return '/admin';
   return '/dashboard';
@@ -73,11 +74,11 @@ export default function AuthCallbackPage() {
 
       const { data: existingProfile } = await supabase
         .from('profiles')
-        .select('role, provider_type, name')
+        .select('role, provider_type, name, verification_status')
         .eq('id', session.user.id)
         .maybeSingle();
 
-      const role = (mode === 'signup'
+      const requestedRole = (mode === 'signup'
         ? roleParam || oauthContext?.role || existingProfile?.role || session.user.user_metadata?.role || 'tourist'
         : existingProfile?.role || session.user.user_metadata?.role || 'tourist') as 'tourist' | 'provider' | 'admin';
       const providerType =
@@ -88,6 +89,11 @@ export default function AuthCallbackPage() {
             session.user.user_metadata?.provider_type ||
             'hotel'
           : existingProfile?.provider_type || session.user.user_metadata?.provider_type || 'hotel';
+      const isProviderSignup = mode === 'signup' && requestedRole === 'provider';
+      const role = (isProviderSignup ? 'tourist' : requestedRole) as 'tourist' | 'provider' | 'admin';
+      const verificationStatus = isProviderSignup
+        ? 'pending'
+        : existingProfile?.verification_status || null;
       const name =
         existingProfile?.name ||
         session.user.user_metadata?.full_name ||
@@ -102,7 +108,8 @@ export default function AuthCallbackPage() {
           email: session.user.email,
           name,
           role,
-          provider_type: role === 'provider' ? providerType : null,
+          provider_type: requestedRole === 'provider' ? providerType : null,
+          verification_status: verificationStatus,
           created_at: new Date().toISOString(),
         },
         { onConflict: 'id' }
@@ -113,7 +120,7 @@ export default function AuthCallbackPage() {
       }
 
       clearOAuthSignupContext();
-      router.replace(getRoleRedirect(role));
+      router.replace(getRoleRedirect(requestedRole, verificationStatus));
       router.refresh();
     };
 

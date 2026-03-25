@@ -37,7 +37,7 @@ export async function getAdminStats(): Promise<AdminResult<AdminStats>> {
 export async function getAllUsers(): Promise<AdminResult<User[]>> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, name, role, provider_type, created_at')
+    .select('id, email, name, role, provider_type, verification_document_url, verification_status, created_at')
     .order('created_at', { ascending: false });
 
   return {
@@ -49,8 +49,8 @@ export async function getAllUsers(): Promise<AdminResult<User[]>> {
 export async function getProviderQueue(): Promise<AdminResult<User[]>> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, name, role, provider_type, created_at')
-    .in('role', ['tourist', 'provider'])
+    .select('id, email, name, role, provider_type, verification_document_url, verification_status, created_at')
+    .or('role.eq.provider,verification_status.not.is.null,provider_type.not.is.null')
     .order('created_at', { ascending: false });
 
   return {
@@ -65,7 +65,7 @@ export async function approveProvider(
 ): Promise<{ error: string | null }> {
   const { error } = await supabase
     .from('profiles')
-    .update({ role: 'provider', provider_type: providerType })
+    .update({ role: 'provider', provider_type: providerType, verification_status: 'approved' })
     .eq('id', userId);
 
   return { error: error ? error.message : null };

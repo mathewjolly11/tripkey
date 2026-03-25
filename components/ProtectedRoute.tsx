@@ -44,6 +44,12 @@ export function ProtectedRoute({
       return;
     }
 
+    if (user.role === 'provider' && user.verification_status !== 'approved') {
+      router.replace('/provider-onboarding');
+      router.refresh();
+      return;
+    }
+
     setIsAuthorized(true);
   }, [user, loading, allowedRoles, router, fallbackRoute]);
 

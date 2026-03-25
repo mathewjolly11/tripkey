@@ -18,6 +18,11 @@ function ProviderDashboardContent() {
   });
 
   useEffect(() => {
+    if (user?.role === 'provider' && user?.verification_status !== 'approved') {
+      router.replace('/provider-onboarding');
+      return;
+    }
+
     const fetchStats = async () => {
       if (!user?.id) return;
 
@@ -45,7 +50,7 @@ function ProviderDashboardContent() {
     };
 
     fetchStats();
-  }, [user?.id]);
+  }, [router, user?.id, user?.role, user?.verification_status]);
 
   const handleLogout = async () => {
     const result = await tripKeyAlert.signOutConfirm();

@@ -14,6 +14,7 @@ function TouristDashboardHome() {
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [fetchingBookings, setFetchingBookings] = useState(true);
   const [accountActionLoading, setAccountActionLoading] = useState(false);
+  const [signOutLoading, setSignOutLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -63,9 +64,10 @@ function TouristDashboardHome() {
   const handleSignOut = async () => {
     const result = await tripKeyAlert.signOutConfirm();
     if (result.isConfirmed) {
+      setSignOutLoading(true);
       await signOut();
-      router.push('/');
-      await tripKeyAlert.success('Signed Out', 'You have been successfully signed out.');
+      router.replace('/login?loggedOut=1');
+      router.refresh();
     }
   };
 
@@ -121,6 +123,14 @@ function TouristDashboardHome() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-sky-100">
+      {signOutLoading && (
+        <div className="fixed inset-0 z-[60] bg-white/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-sky-200 border-t-sky-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-700 font-medium">Signing you out...</p>
+          </div>
+        </div>
+      )}
       {/* Navigation */}
       <nav className="bg-white shadow-sm border-b border-sky-100 sticky top-0 z-40">
         <div className="container-max">
@@ -136,9 +146,10 @@ function TouristDashboardHome() {
 
             <button
               onClick={handleSignOut}
-              className="btn-outline px-5 py-2 text-sm"
+              disabled={signOutLoading}
+              className="btn-outline px-5 py-2 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Sign Out
+              {signOutLoading ? 'Signing Out...' : 'Sign Out'}
             </button>
           </div>
         </div>

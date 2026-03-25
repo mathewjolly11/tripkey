@@ -12,6 +12,15 @@ export default function Navbar() {
   const { isAuthenticated, user, signOut, loading } = useAuth();
   const router = useRouter();
 
+  const getDashboardPath = () => {
+    if (user?.verification_status && user.verification_status !== 'approved') {
+      return '/provider-onboarding';
+    }
+    if (user?.role === 'admin') return '/admin';
+    if (user?.role === 'provider') return '/provider-dashboard';
+    return '/dashboard';
+  };
+
   const handleSignOut = async () => {
     const result = await tripKeyAlert.signOutConfirm();
 
@@ -66,7 +75,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated && !loading ? (
               <>
-                <Link href="/dashboard" className="text-gray-700 hover:text-sky-500 transition-colors font-medium">
+                <Link href={getDashboardPath()} className="text-gray-700 hover:text-sky-500 transition-colors font-medium">
                   Dashboard
                 </Link>
                 <button onClick={handleSignOut} className="btn-outline px-5 py-2 text-sm">
@@ -130,7 +139,7 @@ export default function Navbar() {
             <div className="flex gap-2 pt-2">
               {isAuthenticated && !loading ? (
                 <>
-                  <Link href="/dashboard" className="btn-outline flex-1 text-sm py-2">
+                  <Link href={getDashboardPath()} className="btn-outline flex-1 text-sm py-2">
                     Dashboard
                   </Link>
                   <button onClick={handleSignOut} className="btn-primary flex-1 text-sm py-2">

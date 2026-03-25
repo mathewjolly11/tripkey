@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ) => {
     const { data: existingProfile } = await supabase
       .from('profiles')
-      .select('role, provider_type, name')
+      .select('role, provider_type, name, verification_status')
       .eq('id', sessionUser.id)
       .maybeSingle();
 
@@ -82,8 +82,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const metadataRole = metadata.role as UserRole | undefined;
     const metadataProviderType = metadata.provider_type as ProviderType | undefined;
 
-    const isSignupPromotion = fallbackRole === 'provider' || fallbackRole === 'admin';
-    const role = isSignupPromotion
+    const isProviderPending =
+      fallbackRole === 'provider' && existingProfile?.verification_status !== 'approved';
+    const isSignupPromotion = fallbackRole === 'admin';
+    const role = isProviderPending
+      ? existingProfile?.role || 'tourist'
+      : isSignupPromotion
       ? fallbackRole
       : existingProfile?.role || metadataRole || fallbackRole;
     const provider_type =
@@ -107,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name,
       role,
       provider_type,
+      verification_status: existingProfile?.verification_status || (isProviderPending ? 'pending' : null),
       created_at: new Date().toISOString(),
     };
 

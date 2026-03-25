@@ -7,7 +7,8 @@ import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import { tripKeyAlert } from '@/lib/alerts';
 
-function roleRedirect(role: string) {
+function roleRedirect(role: string, verificationStatus?: string | null) {
+  if (verificationStatus && verificationStatus !== 'approved') return '/provider-onboarding';
   if (role === 'provider') return '/provider-dashboard';
   if (role === 'admin') return '/admin';
   return '/dashboard';
@@ -28,10 +29,10 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      router.replace(roleRedirect(user?.role || 'tourist'));
+      router.replace(roleRedirect(user?.role || 'tourist', user?.verification_status));
       router.refresh();
     }
-  }, [authLoading, isAuthenticated, router, user?.role]);
+  }, [authLoading, isAuthenticated, router, user?.role, user?.verification_status]);
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +82,7 @@ export default function SignupPage() {
       const roleText = role === 'tourist' ? 'Traveler' : role === 'provider' ? 'Service Provider' : 'Administrator';
       await tripKeyAlert.success('Account Created!', `Welcome to TripKey, ${name}! You're now registered as a ${roleText}.`);
       setLoading(false);
-      router.replace(roleRedirect(role));
+      router.replace(roleRedirect(role, role === 'provider' ? 'pending' : null));
       router.refresh();
     }
   };
